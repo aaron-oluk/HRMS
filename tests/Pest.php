@@ -1,5 +1,15 @@
 <?php
 
+use App\Actions\Tenancy\ProvisionDefaultRoles;
+use App\Models\Tenant;
+use App\Models\User;
+use App\Support\Tenancy\TenantContext;
+use Database\Seeders\PermissionSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
+use Tests\TestCase;
+
 /*
 |--------------------------------------------------------------------------
 | Test Case
@@ -11,8 +21,8 @@
 |
 */
 
-pest()->extend(Tests\TestCase::class)
- // ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
+pest()->extend(TestCase::class)
+    ->use(RefreshDatabase::class)
     ->in('Feature');
 
 /*
@@ -41,7 +51,27 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * Create a tenant with default roles provisioned and a user assigned the given role.
+ * Also seeds the global permission catalog and sets the tenancy/permission context
+ * for the current process, matching what IdentifyTenant middleware does per request.
+ *
+ * @return array{0: Tenant, 1: User}
+ */
+function tenantWithRole(string $role = 'HR Admin'): array
 {
-    // ..
+    foreach (PermissionSeeder::PERMISSIONS as $permission) {
+        Permission::findOrCreate($permission, 'web');
+    }
+
+    $tenant = Tenant::factory()->create();
+    app(TenantContext::class)->set($tenant);
+
+    $roles = app(ProvisionDefaultRoles::class)->handle($tenant);
+
+    $user = User::factory()->create(['tenant_id' => $tenant->id]);
+    app(PermissionRegistrar::class)->setPermissionsTeamId($tenant->id);
+    $user->assignRole($roles[$role]);
+
+    return [$tenant, $user];
 }

@@ -9,7 +9,9 @@
     "nightwatch": false,
     "sail": false,
     "skills": [
+        "fortify-development",
         "laravel-best-practices",
-        "pest-testing"
+        "pest-testing",
+        "tailwindcss-development"
     ]
 }
