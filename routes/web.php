@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Web\AttendanceController;
 use App\Http\Controllers\Web\BranchController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\DepartmentController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\Web\LeaveController;
 use App\Http\Controllers\Web\LeaveTypeController;
 use App\Http\Controllers\Web\PositionController;
 use App\Http\Controllers\Web\SecuritySettingsController;
+use App\Http\Controllers\Web\ShiftController;
 use App\Http\Controllers\Web\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -39,6 +41,15 @@ Route::middleware('auth')->group(function (): void {
     Route::post('leave', [LeaveController::class, 'store'])->name('leave.store');
     Route::post('leave/{leaveRequest}/approve', [LeaveController::class, 'approve'])->name('leave.approve');
     Route::post('leave/{leaveRequest}/reject', [LeaveController::class, 'reject'])->name('leave.reject');
+
+    Route::resource('shifts', ShiftController::class)->except('show');
+
+    Route::get('attendance', [AttendanceController::class, 'index'])->name('attendance.index');
+    Route::post('attendance/clock-in', [AttendanceController::class, 'clockIn'])->name('attendance.clock-in');
+    Route::post('attendance/clock-out', [AttendanceController::class, 'clockOut'])->name('attendance.clock-out');
+    Route::post('attendance/overtime', [AttendanceController::class, 'storeOvertime'])->name('attendance.overtime.store');
+    Route::post('attendance/overtime/{overtimeRequest}/approve', [AttendanceController::class, 'approveOvertime'])->name('attendance.overtime.approve');
+    Route::post('attendance/overtime/{overtimeRequest}/reject', [AttendanceController::class, 'rejectOvertime'])->name('attendance.overtime.reject');
 
     Route::scopeBindings()->group(function (): void {
         Route::get('employees/{employee}/employments/create', [EmploymentController::class, 'create'])

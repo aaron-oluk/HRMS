@@ -22,11 +22,14 @@ class ProvisionDefaultRoles
             'users.manage',
             'leave.manage-types',
             'leave.approve',
+            'attendance.manage-shifts',
+            'attendance.approve-overtime',
         ],
         'Manager' => [
             'org.view',
             'employees.view',
             'leave.approve',
+            'attendance.approve-overtime',
         ],
         'Employee' => [],
         'Executive' => [

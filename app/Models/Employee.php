@@ -99,6 +99,21 @@ class Employee extends Model
         return $this->hasMany(LeaveRequest::class);
     }
 
+    public function clockEvents(): HasMany
+    {
+        return $this->hasMany(ClockEvent::class);
+    }
+
+    public function attendanceDays(): HasMany
+    {
+        return $this->hasMany(AttendanceDay::class);
+    }
+
+    public function overtimeRequests(): HasMany
+    {
+        return $this->hasMany(OvertimeRequest::class);
+    }
+
     /**
      * Current employment rows of employees who report to this employee.
      */

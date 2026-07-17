@@ -20,6 +20,8 @@ class PermissionSeeder extends Seeder
         'users.manage',
         'leave.manage-types',
         'leave.approve',
+        'attendance.manage-shifts',
+        'attendance.approve-overtime',
     ];
 
     public function run(): void

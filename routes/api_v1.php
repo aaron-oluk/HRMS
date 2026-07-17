@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\AttendanceController;
 use App\Http\Controllers\Api\V1\BranchController;
 use App\Http\Controllers\Api\V1\DepartmentController;
 use App\Http\Controllers\Api\V1\EmployeeBankAccountController;
@@ -12,7 +13,10 @@ use App\Http\Controllers\Api\V1\GradeController;
 use App\Http\Controllers\Api\V1\LeaveApprovalController;
 use App\Http\Controllers\Api\V1\LeaveRequestController;
 use App\Http\Controllers\Api\V1\LeaveTypeController;
+use App\Http\Controllers\Api\V1\OvertimeApprovalController;
+use App\Http\Controllers\Api\V1\OvertimeRequestController;
 use App\Http\Controllers\Api\V1\PositionController;
+use App\Http\Controllers\Api\V1\ShiftController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Middleware\IdentifyTenant;
 use Illuminate\Routing\Middleware\SubstituteBindings;
@@ -40,6 +44,17 @@ Route::middleware(['auth:sanctum', IdentifyTenant::class, SubstituteBindings::cl
     Route::get('leave-approvals', [LeaveApprovalController::class, 'index']);
     Route::post('leave-requests/{leaveRequest}/approve', [LeaveApprovalController::class, 'approve']);
     Route::post('leave-requests/{leaveRequest}/reject', [LeaveApprovalController::class, 'reject']);
+
+    Route::apiResource('shifts', ShiftController::class);
+    Route::get('attendance/my-timesheet', [AttendanceController::class, 'myTimesheet']);
+    Route::get('attendance/team-today', [AttendanceController::class, 'teamToday']);
+    Route::post('attendance/clock-in', [AttendanceController::class, 'clockIn']);
+    Route::post('attendance/clock-out', [AttendanceController::class, 'clockOut']);
+
+    Route::apiResource('overtime-requests', OvertimeRequestController::class)->only(['index', 'store']);
+    Route::get('overtime-approvals', [OvertimeApprovalController::class, 'index']);
+    Route::post('overtime-requests/{overtimeRequest}/approve', [OvertimeApprovalController::class, 'approve']);
+    Route::post('overtime-requests/{overtimeRequest}/reject', [OvertimeApprovalController::class, 'reject']);
 
     Route::scopeBindings()->group(function (): void {
         Route::apiResource('employees.employments', EmploymentController::class)
