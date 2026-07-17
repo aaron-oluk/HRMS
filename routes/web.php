@@ -10,6 +10,8 @@ use App\Http\Controllers\Web\EmployeeMobileMoneyController;
 use App\Http\Controllers\Web\EmploymentController;
 use App\Http\Controllers\Web\EntityController;
 use App\Http\Controllers\Web\GradeController;
+use App\Http\Controllers\Web\LeaveController;
+use App\Http\Controllers\Web\LeaveTypeController;
 use App\Http\Controllers\Web\PositionController;
 use App\Http\Controllers\Web\SecuritySettingsController;
 use App\Http\Controllers\Web\UserController;
@@ -30,6 +32,13 @@ Route::middleware('auth')->group(function (): void {
     Route::resource('users', UserController::class)->except(['show', 'destroy']);
 
     Route::resource('employees', EmployeeController::class)->except('destroy');
+
+    Route::resource('leave-types', LeaveTypeController::class)->except('show');
+
+    Route::get('leave', [LeaveController::class, 'index'])->name('leave.index');
+    Route::post('leave', [LeaveController::class, 'store'])->name('leave.store');
+    Route::post('leave/{leaveRequest}/approve', [LeaveController::class, 'approve'])->name('leave.approve');
+    Route::post('leave/{leaveRequest}/reject', [LeaveController::class, 'reject'])->name('leave.reject');
 
     Route::scopeBindings()->group(function (): void {
         Route::get('employees/{employee}/employments/create', [EmploymentController::class, 'create'])

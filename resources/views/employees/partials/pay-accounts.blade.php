@@ -45,7 +45,7 @@
                             <x-label for="account_number" value="Account number" />
                             <x-input id="account_number" name="account_number" required class="mt-1" />
                         </div>
-                        <x-button type="submit" class="w-full">Add account</x-button>
+                        <x-button type="submit" icon="bx-plus" class="w-full">Add account</x-button>
                     </form>
                 </x-card>
             @endcan
@@ -99,7 +99,7 @@
                             <x-label for="phone_number" value="Phone number" />
                             <x-input id="phone_number" name="phone_number" required class="mt-1" />
                         </div>
-                        <x-button type="submit" class="w-full">Add account</x-button>
+                        <x-button type="submit" icon="bx-plus" class="w-full">Add account</x-button>
                     </form>
                 </x-card>
             @endcan

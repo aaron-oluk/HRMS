@@ -10,7 +10,10 @@
 <body class="min-h-screen bg-slate-50 antialiased">
     <div class="flex min-h-screen flex-col items-center justify-center px-4 py-12">
         <div class="mb-8 text-center">
-            <span class="text-2xl font-bold tracking-tight text-indigo-600">{{ config('app.name') }}</span>
+            <span class="flex items-center justify-center gap-x-2 text-2xl font-bold tracking-tight text-indigo-600">
+                <i class="bx bxs-buildings"></i>
+                {{ config('app.name') }}
+            </span>
             <p class="mt-1 text-sm text-slate-500">HR &amp; Payroll for Uganda</p>
         </div>
 

@@ -9,6 +9,9 @@ use App\Http\Controllers\Api\V1\EmployeeMobileMoneyController;
 use App\Http\Controllers\Api\V1\EmploymentController;
 use App\Http\Controllers\Api\V1\EntityController;
 use App\Http\Controllers\Api\V1\GradeController;
+use App\Http\Controllers\Api\V1\LeaveApprovalController;
+use App\Http\Controllers\Api\V1\LeaveRequestController;
+use App\Http\Controllers\Api\V1\LeaveTypeController;
 use App\Http\Controllers\Api\V1\PositionController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Middleware\IdentifyTenant;
@@ -31,6 +34,12 @@ Route::middleware(['auth:sanctum', IdentifyTenant::class, SubstituteBindings::cl
     Route::apiResource('users', UserController::class)->except('destroy');
 
     Route::apiResource('employees', EmployeeController::class)->except('destroy');
+
+    Route::apiResource('leave-types', LeaveTypeController::class);
+    Route::apiResource('leave-requests', LeaveRequestController::class)->only(['index', 'store']);
+    Route::get('leave-approvals', [LeaveApprovalController::class, 'index']);
+    Route::post('leave-requests/{leaveRequest}/approve', [LeaveApprovalController::class, 'approve']);
+    Route::post('leave-requests/{leaveRequest}/reject', [LeaveApprovalController::class, 'reject']);
 
     Route::scopeBindings()->group(function (): void {
         Route::apiResource('employees.employments', EmploymentController::class)

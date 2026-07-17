@@ -1,7 +1,7 @@
 <x-layouts.app title="Grades" header="Grades">
     <div class="mb-4 flex justify-end">
         @can('org.manage')
-            <a href="{{ route('grades.create') }}"><x-button>Add grade</x-button></a>
+            <a href="{{ route('grades.create') }}"><x-button icon="bx-plus">Add grade</x-button></a>
         @endcan
     </div>
 

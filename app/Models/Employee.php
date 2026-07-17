@@ -93,4 +93,19 @@ class Employee extends Model
     {
         return $this->hasMany(EmployeeMobileMoney::class);
     }
+
+    public function leaveRequests(): HasMany
+    {
+        return $this->hasMany(LeaveRequest::class);
+    }
+
+    /**
+     * Current employment rows of employees who report to this employee.
+     */
+    public function directReportEmployments(): HasMany
+    {
+        return $this->hasMany(Employment::class, 'reporting_to_employee_id')
+            ->whereNull('effective_to')
+            ->where('status', 'active');
+    }
 }

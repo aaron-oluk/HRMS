@@ -8,6 +8,8 @@ use App\Models\Employee;
 use App\Models\Employment;
 use App\Models\Entity;
 use App\Models\Grade;
+use App\Models\LeaveRequest;
+use App\Models\LeaveType;
 use App\Models\Position;
 use App\Models\Tenant;
 use App\Models\User;
@@ -146,19 +148,52 @@ class DemoTenantSeeder extends Seeder
         );
         $manager->syncRoles([$roles['Manager']]);
 
-        Employee::factory()
+        $teamMembers = Employee::factory()
             ->count(6)
             ->for($entity)
             ->create(['tenant_id' => $tenant->id])
-            ->each(function (Employee $employee) use ($tenant, $entity, $departments, $positions, $grade): void {
+            ->each(function (Employee $employee, int $index) use ($tenant, $entity, $departments, $positions, $grade, $managerEmployee): void {
                 Employment::factory()->create([
                     'tenant_id' => $tenant->id,
                     'employee_id' => $employee->id,
                     'entity_id' => $entity->id,
-                    'department_id' => $departments->random()->id,
-                    'position_id' => $positions->random()->id,
+                    'department_id' => $departments['Engineering']->id,
+                    'position_id' => $positions['Software Engineer']->id,
                     'grade_id' => $grade->id,
+                    'reporting_to_employee_id' => $index < 2 ? $managerEmployee->id : null,
                 ]);
             });
+
+        $leaveTypes = collect([
+            ['name' => 'Annual Leave', 'code' => 'ANNUAL', 'default_days_per_year' => 21, 'max_carry_forward_days' => 5],
+            ['name' => 'Sick Leave', 'code' => 'SICK', 'default_days_per_year' => 10, 'max_carry_forward_days' => null],
+            ['name' => 'Unpaid Leave', 'code' => 'UNPAID', 'is_paid' => false, 'default_days_per_year' => 30, 'max_carry_forward_days' => null],
+        ])->mapWithKeys(fn (array $attributes) => [$attributes['code'] => LeaveType::firstOrCreate(
+            ['tenant_id' => $tenant->id, 'entity_id' => $entity->id, 'code' => $attributes['code']],
+            [...$attributes, 'tenant_id' => $tenant->id, 'entity_id' => $entity->id]
+        )]);
+
+        LeaveRequest::firstOrCreate(
+            ['tenant_id' => $tenant->id, 'employee_id' => $managerEmployee->id, 'start_date' => now()->addWeek()->startOfWeek(6)->toDateString()],
+            [
+                'leave_type_id' => $leaveTypes['ANNUAL']->id,
+                'end_date' => now()->addWeek()->startOfWeek(6)->addDays(4)->toDateString(),
+                'days' => 5,
+                'reason' => 'Family trip',
+                'status' => 'pending',
+            ]
+        );
+
+        $reportEmployee = $teamMembers->first();
+        LeaveRequest::firstOrCreate(
+            ['tenant_id' => $tenant->id, 'employee_id' => $reportEmployee->id, 'start_date' => now()->addDays(3)->toDateString()],
+            [
+                'leave_type_id' => $leaveTypes['SICK']->id,
+                'end_date' => now()->addDays(3)->toDateString(),
+                'days' => 1,
+                'reason' => 'Doctor appointment',
+                'status' => 'pending',
+            ]
+        );
     }
 }

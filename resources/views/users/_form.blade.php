@@ -34,7 +34,7 @@
     <div>
         <x-label for="role" value="Role" />
         <x-select id="role" name="role" class="mt-1">
-            @foreach (['HR Admin', 'Manager', 'Employee'] as $role)
+            @foreach (['HR Admin', 'Manager', 'Employee', 'Executive'] as $role)
                 <option value="{{ $role }}" @selected(old('role', $user?->getRoleNames()->first()) === $role)>{{ $role }}</option>
             @endforeach
         </x-select>

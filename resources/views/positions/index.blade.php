@@ -1,7 +1,7 @@
 <x-layouts.app title="Positions" header="Positions">
     <div class="mb-4 flex justify-end">
         @can('org.manage')
-            <a href="{{ route('positions.create') }}"><x-button>Add position</x-button></a>
+            <a href="{{ route('positions.create') }}"><x-button icon="bx-plus">Add position</x-button></a>
         @endcan
     </div>
 

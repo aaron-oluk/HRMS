@@ -2,7 +2,7 @@
     <div class="mb-4 flex justify-end">
         @can('org.manage')
             <a href="{{ route('entities.create') }}">
-                <x-button>Add entity</x-button>
+                <x-button icon="bx-plus">Add entity</x-button>
             </a>
         @endcan
     </div>

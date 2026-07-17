@@ -1,6 +1,6 @@
 <x-layouts.app title="Users & Roles" header="Users & Roles">
     <div class="mb-4 flex justify-end">
-        <a href="{{ route('users.create') }}"><x-button>Add user</x-button></a>
+        <a href="{{ route('users.create') }}"><x-button icon="bx-plus">Add user</x-button></a>
     </div>
 
     <x-card class="!p-0 overflow-x-auto">

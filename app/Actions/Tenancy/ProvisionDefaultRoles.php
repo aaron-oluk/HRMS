@@ -20,12 +20,19 @@ class ProvisionDefaultRoles
             'employees.view-sensitive',
             'employments.manage',
             'users.manage',
+            'leave.manage-types',
+            'leave.approve',
         ],
         'Manager' => [
             'org.view',
             'employees.view',
+            'leave.approve',
         ],
         'Employee' => [],
+        'Executive' => [
+            'org.view',
+            'employees.view',
+        ],
     ];
 
     public function __construct(protected PermissionRegistrar $permissionRegistrar) {}

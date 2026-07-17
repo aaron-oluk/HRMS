@@ -1,7 +1,7 @@
 <div class="mb-4 flex justify-end">
     @can('employments.manage')
         <a href="{{ route('employees.employments.create', $employee) }}">
-            <x-button>Record employment change</x-button>
+            <x-button icon="bx-plus">Record employment change</x-button>
         </a>
     @endcan
 </div>

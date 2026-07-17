@@ -26,7 +26,7 @@ class UserRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($this->route('user'))],
             'password' => [$this->isMethod('post') ? 'required' : 'nullable', 'string', 'min:8'],
-            'role' => ['required', 'in:HR Admin,Manager,Employee'],
+            'role' => ['required', 'in:HR Admin,Manager,Employee,Executive'],
             'status' => ['required', 'in:active,invited,suspended'],
         ];
     }

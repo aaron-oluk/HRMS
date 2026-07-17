@@ -54,7 +54,7 @@
                     <input id="file" type="file" name="file" required class="mt-1 block w-full text-sm text-slate-500">
                     <x-input-error :messages="$errors->get('file')" class="mt-1" />
                 </div>
-                <x-button type="submit" class="w-full">Upload</x-button>
+                <x-button type="submit" icon="bx-upload" class="w-full">Upload</x-button>
             </form>
         </x-card>
     @endcan

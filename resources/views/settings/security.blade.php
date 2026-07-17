@@ -15,7 +15,7 @@
 
             <template x-if="!enabled && !setupInProgress">
                 <div class="mt-6">
-                    <x-button type="button" @click="enable">Enable two-factor authentication</x-button>
+                    <x-button type="button" icon="bx-shield-plus" @click="enable">Enable two-factor authentication</x-button>
                 </div>
             </template>
 

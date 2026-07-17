@@ -18,6 +18,8 @@ class PermissionSeeder extends Seeder
         'employees.view-sensitive',
         'employments.manage',
         'users.manage',
+        'leave.manage-types',
+        'leave.approve',
     ];
 
     public function run(): void
