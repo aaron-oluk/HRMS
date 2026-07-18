@@ -1,4 +1,11 @@
 @php
+    $greeting = match (true) {
+        now()->hour < 12 => 'Good morning',
+        now()->hour < 17 => 'Good afternoon',
+        default => 'Good evening',
+    };
+    $firstName = str(auth()->user()->name)->before(' ')->toString();
+
     $quickActions = collect([
         ['label' => 'Request time off', 'route' => 'leave.index', 'icon' => 'bx-calendar-plus', 'show' => $myLeaveBalance !== null],
         ['label' => 'Review approvals', 'route' => 'leave.index', 'icon' => 'bx-check-shield', 'show' => $pendingApprovalsCount !== null],
@@ -19,6 +26,22 @@
 @endphp
 
 <x-layouts.app title="Dashboard" header="Dashboard">
+    <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h2 class="text-xl font-semibold text-slate-900">{{ $greeting }}, {{ $firstName }}</h2>
+            <p class="mt-0.5 text-sm text-slate-500">{{ now()->format('l, F j, Y') }}</p>
+        </div>
+        @if ($quickActions->isNotEmpty())
+            <div class="flex flex-wrap gap-2.5">
+                @foreach ($quickActions as $action)
+                    <a href="{{ route($action['route']) }}">
+                        <x-button variant="secondary" :icon="$action['icon']">{{ $action['label'] }}</x-button>
+                    </a>
+                @endforeach
+            </div>
+        @endif
+    </div>
+
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         @if ($myLeaveBalance !== null)
             <x-card class="flex items-center gap-x-4">
@@ -79,42 +102,74 @@
         @endcan
     </div>
 
-    @if ($quickActions->isNotEmpty())
-        <x-card class="mt-6">
-            <p class="mb-3 text-sm font-semibold text-slate-900">Quick actions</p>
-            <div class="flex flex-wrap gap-3">
-                @foreach ($quickActions as $action)
-                    <a href="{{ route($action['route']) }}">
-                        <x-button variant="secondary" :icon="$action['icon']">{{ $action['label'] }}</x-button>
-                    </a>
-                @endforeach
-            </div>
-        </x-card>
-    @endif
-
-    @if ($myWeeklyHours->isNotEmpty())
-        <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <x-card>
-                <p class="mb-4 text-sm font-semibold text-slate-900">Hours this week</p>
-                @php
-                    $maxHours = max(8, $myWeeklyHours->max('hours'));
-                @endphp
-                <div class="flex h-32 items-end justify-between gap-x-2">
-                    @foreach ($myWeeklyHours as $day)
-                        <div class="flex h-full flex-1 flex-col items-center justify-end gap-y-1.5">
-                            <span class="text-xs text-slate-400">{{ $day['hours'] > 0 ? $day['hours'] : '' }}</span>
-                            <div class="flex w-full flex-1 items-end">
-                                <div
-                                    class="w-full rounded-t {{ $day['isToday'] ? 'bg-emerald-500' : 'bg-emerald-100' }}"
-                                    style="height: {{ $day['hours'] > 0 ? max(6, ($day['hours'] / $maxHours) * 100) : 2 }}%"
-                                ></div>
+    <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div class="flex flex-col gap-6 lg:col-span-2">
+            @if ($myWeeklyHours->isNotEmpty())
+                <x-card>
+                    <p class="mb-4 text-sm font-semibold text-slate-900">Hours this week</p>
+                    @php
+                        $maxHours = max(8, $myWeeklyHours->max('hours'));
+                    @endphp
+                    <div class="flex h-32 items-end justify-between gap-x-2">
+                        @foreach ($myWeeklyHours as $day)
+                            <div class="flex h-full flex-1 flex-col items-center justify-end gap-y-1.5">
+                                <span class="text-xs text-slate-400">{{ $day['hours'] > 0 ? $day['hours'] : '' }}</span>
+                                <div class="flex w-full flex-1 items-end">
+                                    <div
+                                        class="w-full rounded-t {{ $day['isToday'] ? 'bg-emerald-500' : 'bg-emerald-100' }}"
+                                        style="height: {{ $day['hours'] > 0 ? max(6, ($day['hours'] / $maxHours) * 100) : 2 }}%"
+                                    ></div>
+                                </div>
+                                <span class="text-xs font-medium {{ $day['isToday'] ? 'text-emerald-600' : 'text-slate-400' }}">{{ $day['label'] }}</span>
                             </div>
-                            <span class="text-xs font-medium {{ $day['isToday'] ? 'text-emerald-600' : 'text-slate-400' }}">{{ $day['label'] }}</span>
-                        </div>
-                    @endforeach
-                </div>
-            </x-card>
+                        @endforeach
+                    </div>
+                </x-card>
+            @endif
 
+            @if ($upcomingLeave->isNotEmpty())
+                <x-card>
+                    <p class="mb-4 text-sm font-semibold text-slate-900">Upcoming time off</p>
+                    <div class="flex flex-col divide-y divide-slate-100">
+                        @foreach ($upcomingLeave as $request)
+                            <div class="flex items-center justify-between py-2.5">
+                                <div class="flex items-center gap-x-3">
+                                    <x-avatar :name="$request->employee->fullName()" size="sm" />
+                                    <p class="text-sm text-slate-700">{{ $request->employee->fullName() }} · {{ $request->leaveType->name }}</p>
+                                </div>
+                                <p class="text-sm text-slate-500">
+                                    {{ $request->start_date->toFormattedDateString() }}
+                                    @if (! $request->start_date->equalTo($request->end_date))
+                                        &ndash; {{ $request->end_date->toFormattedDateString() }}
+                                    @endif
+                                </p>
+                            </div>
+                        @endforeach
+                    </div>
+                </x-card>
+            @endif
+
+            @if ($activity->isNotEmpty())
+                <x-card>
+                    <p class="mb-4 text-sm font-semibold text-slate-900">Recent activity</p>
+                    <div class="flex flex-col">
+                        @foreach ($activity as $item)
+                            <div class="flex items-start gap-x-3 border-b border-slate-100 py-3 last:border-b-0 last:pb-0">
+                                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100">
+                                    <i class="bx {{ $item['icon'] }} text-base text-emerald-600"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-sm text-slate-700">{{ $item['text'] }}</p>
+                                    <p class="mt-0.5 text-xs text-slate-400">{{ $item['time']->diffForHumans() }}</p>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </x-card>
+            @endif
+        </div>
+
+        <div class="flex flex-col gap-6">
             <x-card>
                 @php
                     $month = now();
@@ -146,72 +201,27 @@
                     @endfor
                 </div>
             </x-card>
-        </div>
-    @endif
 
-    <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
-        @if ($departmentHeadcount->isNotEmpty())
-            <x-card>
-                <p class="mb-4 text-sm font-semibold text-slate-900">Headcount by department</p>
-                <div class="flex items-center gap-x-8">
-                    <div
-                        class="h-32 w-32 shrink-0 rounded-full"
-                        style="background: radial-gradient(circle, white 55%, transparent 56%), conic-gradient({{ $donutSegments->map(fn ($s) => "{$s['color']} {$s['from']}% {$s['to']}%")->implode(', ') }})"
-                    ></div>
-                    <div class="flex flex-col gap-y-2">
-                        @foreach ($departmentHeadcount as $i => $row)
-                            <div class="flex items-center gap-x-2 text-sm">
-                                <span class="h-2.5 w-2.5 rounded-full" style="background: {{ $donutColors[$i % count($donutColors)] }}"></span>
-                                <span class="text-slate-700">{{ $row->department }}</span>
-                                <span class="text-slate-400">· {{ $row->total }}</span>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            </x-card>
-        @endif
-
-        @if ($activity->isNotEmpty())
-            <x-card>
-                <p class="mb-4 text-sm font-semibold text-slate-900">Recent activity</p>
-                <div class="flex flex-col">
-                    @foreach ($activity as $item)
-                        <div class="flex items-start gap-x-3 border-b border-slate-100 py-3 last:border-b-0 last:pb-0">
-                            <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100">
-                                <i class="bx {{ $item['icon'] }} text-base text-emerald-600"></i>
-                            </div>
-                            <div class="min-w-0">
-                                <p class="text-sm text-slate-700">{{ $item['text'] }}</p>
-                                <p class="mt-0.5 text-xs text-slate-400">{{ $item['time']->diffForHumans() }}</p>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            </x-card>
-        @endif
-
-        @if ($upcomingLeave->isNotEmpty())
-            <x-card class="lg:col-span-2">
-                <p class="mb-4 text-sm font-semibold text-slate-900">Upcoming time off</p>
-                <div class="flex flex-col divide-y divide-slate-100">
-                    @foreach ($upcomingLeave as $request)
-                        <div class="flex items-center justify-between py-2.5">
-                            <div class="flex items-center gap-x-3">
-                                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-50">
-                                    <i class="bx bx-calendar text-base text-emerald-600"></i>
+            @if ($departmentHeadcount->isNotEmpty())
+                <x-card>
+                    <p class="mb-4 text-sm font-semibold text-slate-900">Headcount by department</p>
+                    <div class="flex flex-col items-center gap-y-4">
+                        <div
+                            class="h-32 w-32 shrink-0 rounded-full"
+                            style="background: radial-gradient(circle, white 55%, transparent 56%), conic-gradient({{ $donutSegments->map(fn ($s) => "{$s['color']} {$s['from']}% {$s['to']}%")->implode(', ') }})"
+                        ></div>
+                        <div class="flex w-full flex-col gap-y-2">
+                            @foreach ($departmentHeadcount as $i => $row)
+                                <div class="flex items-center gap-x-2 text-sm">
+                                    <span class="h-2.5 w-2.5 shrink-0 rounded-full" style="background: {{ $donutColors[$i % count($donutColors)] }}"></span>
+                                    <span class="truncate text-slate-700">{{ $row->department }}</span>
+                                    <span class="ml-auto text-slate-400">{{ $row->total }}</span>
                                 </div>
-                                <p class="text-sm text-slate-700">{{ $request->employee->fullName() }} · {{ $request->leaveType->name }}</p>
-                            </div>
-                            <p class="text-sm text-slate-500">
-                                {{ $request->start_date->toFormattedDateString() }}
-                                @if (! $request->start_date->equalTo($request->end_date))
-                                    &ndash; {{ $request->end_date->toFormattedDateString() }}
-                                @endif
-                            </p>
+                            @endforeach
                         </div>
-                    @endforeach
-                </div>
-            </x-card>
-        @endif
+                    </div>
+                </x-card>
+            @endif
+        </div>
     </div>
 </x-layouts.app>

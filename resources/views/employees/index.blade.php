@@ -7,6 +7,7 @@
                 name="q"
                 value="{{ $search }}"
                 placeholder="Search by name or employee #"
+                autocomplete="off"
                 class="block w-full rounded-lg border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 hover:border-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
             >
         </form>

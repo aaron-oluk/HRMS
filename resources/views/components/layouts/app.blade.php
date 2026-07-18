@@ -112,13 +112,12 @@
                     <x-nav-section>Account</x-nav-section>
                 @endcannot
             @endcannot
-            <x-nav-link :href="route('security.edit')" :active="request()->routeIs('security.*')" icon="bx-shield-quarter">
-                Security
+            <x-nav-link :href="route('profile.edit')" :active="request()->routeIs('profile.*')" icon="bx-user">
+                My Profile
             </x-nav-link>
         </nav>
 
-        <div class="flex items-center gap-x-2 border-t border-slate-100 px-4 py-3">
-            <i class="bx bxs-buildings text-sm text-emerald-500"></i>
+        <div class="border-t border-slate-100 px-4 py-3">
             <span class="truncate text-xs font-medium text-slate-500">{{ auth()->user()->tenant?->name }}</span>
         </div>
     </div>
@@ -130,18 +129,38 @@
             <h1 class="flex items-center gap-x-2 text-lg font-semibold text-slate-900">
                 {{ $header ?? '' }}
             </h1>
-            <div class="flex items-center gap-x-4">
-                <div class="flex items-center gap-x-2.5">
+            <div class="relative" x-data="{ open: false }">
+                <button @click="open = !open" @click.outside="open = false" class="flex items-center gap-x-2 rounded-lg px-1.5 py-1 transition hover:bg-slate-100">
                     <x-avatar :name="auth()->user()->name" size="sm" />
                     <span class="hidden text-sm font-medium text-slate-700 sm:block">{{ auth()->user()->name }}</span>
+                    <i class="bx bx-chevron-down hidden text-sm text-slate-400 sm:block"></i>
+                </button>
+
+                <div
+                    x-cloak
+                    x-show="open"
+                    x-transition
+                    class="absolute right-0 z-20 mt-2 w-56 origin-top-right rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
+                >
+                    <div class="flex items-center gap-x-3 border-b border-slate-100 px-3 py-3">
+                        <x-avatar :name="auth()->user()->name" size="sm" />
+                        <div class="min-w-0">
+                            <p class="truncate text-sm font-medium text-slate-900">{{ auth()->user()->name }}</p>
+                            <p class="truncate text-xs text-slate-500">{{ auth()->user()->email }}</p>
+                        </div>
+                    </div>
+                    <a href="{{ route('profile.edit') }}" class="flex items-center gap-x-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                        <i class="bx bx-user text-base text-slate-400"></i>
+                        My Profile
+                    </a>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="flex w-full items-center gap-x-2 px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50">
+                            <i class="bx bx-log-out text-base text-slate-400"></i>
+                            Log out
+                        </button>
+                    </form>
                 </div>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="flex items-center gap-x-1 rounded-md px-2 py-1 text-sm text-slate-500 transition hover:bg-slate-100 hover:text-slate-700">
-                        <i class="bx bx-log-out text-base"></i>
-                        <span class="hidden sm:inline">Log out</span>
-                    </button>
-                </form>
             </div>
         </header>
 
