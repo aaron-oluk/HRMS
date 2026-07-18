@@ -1,5 +1,5 @@
 <div class="overflow-x-auto">
-    <table class="min-w-full divide-y divide-slate-200 text-sm">
+    <table class="min-w-full divide-y divide-slate-100 text-sm">
         <thead class="bg-slate-50">
             <tr>
                 <th class="px-4 py-3 text-left font-medium text-slate-500">Date</th>
@@ -16,15 +16,14 @@
                     <td class="px-4 py-3 text-slate-500">{{ $request->reason ?? '—' }}</td>
                     <td class="px-4 py-3">
                         @php
-                            $statusColors = [
-                                'pending' => 'bg-amber-50 text-amber-700 ring-amber-600/20',
-                                'approved' => 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
-                                'rejected' => 'bg-red-50 text-red-700 ring-red-600/20',
-                            ];
+                            $statusColor = match ($request->status) {
+                                'pending' => 'warning',
+                                'approved' => 'success',
+                                'rejected' => 'danger',
+                                default => 'neutral',
+                            };
                         @endphp
-                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset {{ $statusColors[$request->status] }}">
-                            {{ ucfirst($request->status) }}
-                        </span>
+                        <x-badge :color="$statusColor">{{ ucfirst($request->status) }}</x-badge>
                     </td>
                 </tr>
             @empty

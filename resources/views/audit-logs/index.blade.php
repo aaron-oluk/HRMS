@@ -2,7 +2,7 @@
     <p class="mb-6 text-sm text-slate-500">Login attempts, denied access, sensitive-field views, and role changes across the tenant.</p>
 
     <x-card class="!p-0 overflow-x-auto">
-        <table class="min-w-full divide-y divide-slate-200 text-sm">
+        <table class="min-w-full divide-y divide-slate-100 text-sm">
             <thead class="bg-slate-50">
                 <tr>
                     <th class="px-4 py-3 text-left font-medium text-slate-500">Actor</th>

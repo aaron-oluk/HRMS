@@ -21,7 +21,7 @@
         </div>
 
         <div class="flex items-center justify-between">
-            <button type="button" @click="recovery = !recovery" class="text-sm text-indigo-600 hover:text-indigo-500">
+            <button type="button" @click="recovery = !recovery" class="text-sm text-emerald-600 hover:text-emerald-500">
                 <span x-show="!recovery">Use a recovery code</span>
                 <span x-show="recovery" x-cloak>Use an authentication code</span>
             </button>

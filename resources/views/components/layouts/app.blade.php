@@ -7,14 +7,16 @@
     <title>{{ $title ?? config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="h-full bg-slate-100 antialiased" x-data="{ sidebarOpen: false }">
+<body class="h-full bg-slate-50 antialiased" x-data="{ sidebarOpen: false }">
 <div class="min-h-full">
-    <div class="lg:hidden fixed inset-x-0 top-0 z-40 flex items-center justify-between bg-indigo-800 px-4 py-3">
-        <span class="flex items-center gap-x-2 text-lg font-bold text-white">
-            <i class="bx bxs-buildings text-xl text-indigo-300"></i>
+    <div class="lg:hidden fixed inset-x-0 top-0 z-40 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
+        <span class="flex items-center gap-x-2 text-lg font-bold text-slate-900">
+            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600">
+                <i class="bx bxs-buildings text-lg text-white"></i>
+            </span>
             {{ config('app.name') }}
         </span>
-        <button @click="sidebarOpen = !sidebarOpen" class="text-indigo-100">
+        <button @click="sidebarOpen = !sidebarOpen" class="rounded-md p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-700">
             <i class="bx bx-menu text-2xl"></i>
         </button>
     </div>
@@ -22,11 +24,13 @@
     <div
         x-cloak
         :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
-        class="fixed inset-y-0 left-0 z-30 flex w-64 flex-col transform bg-indigo-800 transition-transform duration-200 ease-in-out lg:translate-x-0"
+        class="fixed inset-y-0 left-0 z-30 flex w-64 flex-col transform border-r border-slate-200 bg-white transition-transform duration-200 ease-in-out lg:translate-x-0"
     >
-        <div class="flex h-16 shrink-0 items-center gap-x-2 px-6">
-            <i class="bx bxs-buildings text-xl text-indigo-300"></i>
-            <span class="text-lg font-bold text-white">{{ config('app.name') }}</span>
+        <div class="flex h-16 shrink-0 items-center gap-x-2.5 px-6">
+            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600">
+                <i class="bx bxs-buildings text-lg text-white"></i>
+            </span>
+            <span class="text-lg font-bold tracking-tight text-slate-900">{{ config('app.name') }}</span>
         </div>
         <nav class="flex flex-1 flex-col gap-y-1 overflow-y-auto px-3 pb-4">
             <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" icon="bx-grid-alt">
@@ -37,7 +41,7 @@
             <x-nav-link :href="route('inbox.index')" :active="request()->routeIs('inbox.index')" icon="bxs-inbox">
                 Inbox
                 @if ($totalInboxCount > 0)
-                    <span class="ml-auto rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-indigo-800">{{ $totalInboxCount }}</span>
+                    <span class="ml-auto rounded-full bg-emerald-500 px-2 py-0.5 text-xs font-semibold text-white">{{ $totalInboxCount }}</span>
                 @endif
             </x-nav-link>
 
@@ -53,14 +57,14 @@
             <x-nav-link :href="route('leave.index')" :active="request()->routeIs('leave.index')" icon="bx-calendar-check">
                 Time Off
                 @if ($pendingLeaveApprovalsCount > 0)
-                    <span class="ml-auto rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-indigo-800">{{ $pendingLeaveApprovalsCount }}</span>
+                    <span class="ml-auto rounded-full bg-emerald-500 px-2 py-0.5 text-xs font-semibold text-white">{{ $pendingLeaveApprovalsCount }}</span>
                 @endif
             </x-nav-link>
 
             <x-nav-link :href="route('attendance.index')" :active="request()->routeIs('attendance.index')" icon="bx-time-five">
                 Attendance
                 @if ($pendingOvertimeApprovalsCount > 0)
-                    <span class="ml-auto rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-indigo-800">{{ $pendingOvertimeApprovalsCount }}</span>
+                    <span class="ml-auto rounded-full bg-emerald-500 px-2 py-0.5 text-xs font-semibold text-white">{{ $pendingOvertimeApprovalsCount }}</span>
                 @endif
             </x-nav-link>
 
@@ -112,29 +116,30 @@
                 Security
             </x-nav-link>
         </nav>
+
+        <div class="flex items-center gap-x-2 border-t border-slate-100 px-4 py-3">
+            <i class="bx bxs-buildings text-sm text-emerald-500"></i>
+            <span class="truncate text-xs font-medium text-slate-500">{{ auth()->user()->tenant?->name }}</span>
+        </div>
     </div>
 
-    <div x-cloak x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 z-20 bg-black/40 lg:hidden"></div>
+    <div x-cloak x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 z-20 bg-slate-900/50 lg:hidden"></div>
 
     <div class="lg:pl-64">
-        <header class="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 pt-12 lg:pt-0 sm:px-6">
+        <header class="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-slate-200 bg-white/80 px-4 pt-12 backdrop-blur lg:pt-0 sm:px-6">
             <h1 class="flex items-center gap-x-2 text-lg font-semibold text-slate-900">
                 {{ $header ?? '' }}
             </h1>
             <div class="flex items-center gap-x-4">
-                <span class="hidden items-center gap-x-1.5 text-sm text-slate-500 sm:flex">
-                    <i class="bx bxs-buildings text-base"></i>
-                    {{ auth()->user()->tenant?->name }}
-                </span>
-                <span class="flex items-center gap-x-1.5 text-sm font-medium text-slate-700">
-                    <i class="bx bxs-user-circle text-lg text-slate-400"></i>
-                    {{ auth()->user()->name }}
-                </span>
+                <div class="flex items-center gap-x-2.5">
+                    <x-avatar :name="auth()->user()->name" size="sm" />
+                    <span class="hidden text-sm font-medium text-slate-700 sm:block">{{ auth()->user()->name }}</span>
+                </div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button type="submit" class="flex items-center gap-x-1 text-sm text-slate-500 hover:text-slate-700">
+                    <button type="submit" class="flex items-center gap-x-1 rounded-md px-2 py-1 text-sm text-slate-500 transition hover:bg-slate-100 hover:text-slate-700">
                         <i class="bx bx-log-out text-base"></i>
-                        Log out
+                        <span class="hidden sm:inline">Log out</span>
                     </button>
                 </form>
             </div>

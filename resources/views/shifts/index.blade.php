@@ -6,7 +6,7 @@
     </div>
 
     <x-card class="!p-0 overflow-x-auto">
-        <table class="min-w-full divide-y divide-slate-200 text-sm">
+        <table class="min-w-full divide-y divide-slate-100 text-sm">
             <thead class="bg-slate-50">
                 <tr>
                     <th class="px-4 py-3 text-left font-medium text-slate-500">Name</th>
@@ -26,10 +26,10 @@
                         <td class="px-4 py-3 text-slate-500">{{ $shift->formattedStartTime() }}</td>
                         <td class="px-4 py-3 text-slate-500">{{ $shift->formattedEndTime() }}</td>
                         <td class="px-4 py-3 text-slate-500">{{ $shift->break_minutes }}</td>
-                        <td class="px-4 py-3 text-slate-500">{{ ucfirst($shift->status) }}</td>
+                        <td class="px-4 py-3"><x-badge :color="$shift->status === 'active' ? 'success' : 'neutral'">{{ ucfirst($shift->status) }}</x-badge></td>
                         <td class="px-4 py-3 text-right">
                             @can('attendance.manage-shifts')
-                                <a href="{{ route('shifts.edit', $shift) }}" class="text-indigo-600 hover:text-indigo-500">Edit</a>
+                                <a href="{{ route('shifts.edit', $shift) }}" class="text-emerald-600 hover:text-emerald-500">Edit</a>
                             @endcan
                         </td>
                     </tr>

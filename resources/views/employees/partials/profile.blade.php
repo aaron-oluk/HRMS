@@ -22,7 +22,17 @@
         </div>
         <div>
             <dt class="text-xs font-medium uppercase text-slate-500">Status</dt>
-            <dd class="mt-1 text-sm text-slate-900">{{ ucfirst(str_replace('_', ' ', $employee->status)) }}</dd>
+            <dd class="mt-1">
+                @php
+                    $statusColor = match ($employee->status) {
+                        'active' => 'success',
+                        'on_leave' => 'info',
+                        'suspended' => 'danger',
+                        default => 'neutral',
+                    };
+                @endphp
+                <x-badge :color="$statusColor">{{ ucfirst(str_replace('_', ' ', $employee->status)) }}</x-badge>
+            </dd>
         </div>
 
         @can('employees.view-identity-numbers')

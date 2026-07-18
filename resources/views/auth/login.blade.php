@@ -1,5 +1,6 @@
 <x-layouts.guest title="Log in">
-    <h2 class="text-lg font-semibold text-slate-900">Log in to your account</h2>
+    <h2 class="text-xl font-semibold text-slate-900">Welcome back</h2>
+    <p class="mt-1 text-sm text-slate-500">Log in to your Aloflux HRMS account.</p>
 
     @if (session('status'))
         <x-alert type="success" class="mt-4">{{ session('status') }}</x-alert>
@@ -22,12 +23,12 @@
 
         <div class="flex items-center justify-between">
             <label class="flex items-center gap-x-2 text-sm text-slate-600">
-                <input type="checkbox" name="remember" class="rounded border border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                <x-checkbox name="remember" />
                 Remember me
             </label>
 
             @if (Route::has('password.request'))
-                <a href="{{ route('password.request') }}" class="text-sm text-indigo-600 hover:text-indigo-500">
+                <a href="{{ route('password.request') }}" class="text-sm text-emerald-600 hover:text-emerald-500">
                     Forgot your password?
                 </a>
             @endif

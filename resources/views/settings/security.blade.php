@@ -36,7 +36,7 @@
                     <x-alert type="success">Two-factor authentication is enabled.</x-alert>
 
                     <div>
-                        <button type="button" @click="toggleRecoveryCodes" class="text-sm text-indigo-600 hover:text-indigo-500">
+                        <button type="button" @click="toggleRecoveryCodes" class="text-sm text-emerald-600 hover:text-emerald-500">
                             <span x-show="!showRecoveryCodes">Show recovery codes</span>
                             <span x-show="showRecoveryCodes" x-cloak>Hide recovery codes</span>
                         </button>

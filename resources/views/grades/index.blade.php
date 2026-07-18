@@ -6,7 +6,7 @@
     </div>
 
     <x-card class="!p-0 overflow-x-auto">
-        <table class="min-w-full divide-y divide-slate-200 text-sm">
+        <table class="min-w-full divide-y divide-slate-100 text-sm">
             <thead class="bg-slate-50">
                 <tr>
                     <th class="px-4 py-3 text-left font-medium text-slate-500">Name</th>
@@ -26,10 +26,10 @@
                         <td class="px-4 py-3 text-slate-500">
                             {{ number_format($grade->min_salary) }} – {{ number_format($grade->max_salary) }} {{ $grade->currency }}
                         </td>
-                        <td class="px-4 py-3 text-slate-500">{{ ucfirst($grade->status) }}</td>
+                        <td class="px-4 py-3"><x-badge :color="$grade->status === 'active' ? 'success' : 'neutral'">{{ ucfirst($grade->status) }}</x-badge></td>
                         <td class="px-4 py-3 text-right">
                             @can('org.manage')
-                                <a href="{{ route('grades.edit', $grade) }}" class="text-indigo-600 hover:text-indigo-500">Edit</a>
+                                <a href="{{ route('grades.edit', $grade) }}" class="text-emerald-600 hover:text-emerald-500">Edit</a>
                             @endcan
                         </td>
                     </tr>

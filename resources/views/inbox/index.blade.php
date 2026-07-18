@@ -10,8 +10,8 @@
             @foreach ($items as $item)
                 <x-card class="flex items-center justify-between gap-x-4">
                     <div class="flex items-center gap-x-4">
-                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-indigo-50">
-                            <i class="bx {{ $item['icon'] }} text-xl text-indigo-600"></i>
+                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50">
+                            <i class="bx {{ $item['icon'] }} text-xl text-emerald-600"></i>
                         </div>
                         <div>
                             <p class="text-sm font-semibold text-slate-900">{{ $item['employee'] }} · {{ $item['type'] }}</p>

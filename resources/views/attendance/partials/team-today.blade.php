@@ -1,5 +1,5 @@
 <div class="overflow-x-auto">
-    <table class="min-w-full divide-y divide-slate-200 text-sm">
+    <table class="min-w-full divide-y divide-slate-100 text-sm">
         <thead class="bg-slate-50">
             <tr>
                 <th class="px-4 py-3 text-left font-medium text-slate-500">Employee</th>
@@ -12,7 +12,18 @@
             @forelse ($teamToday as $day)
                 <tr>
                     <td class="px-4 py-3 font-medium text-slate-900">{{ $day->employee->fullName() }}</td>
-                    <td class="px-4 py-3 text-slate-500">{{ ucfirst(str_replace('_', ' ', $day->status)) }}</td>
+                    <td class="px-4 py-3">
+                        @php
+                            $statusColor = match ($day->status) {
+                                'present' => 'success',
+                                'late' => 'warning',
+                                'absent' => 'danger',
+                                'on_leave' => 'info',
+                                default => 'neutral',
+                            };
+                        @endphp
+                        <x-badge :color="$statusColor">{{ ucfirst(str_replace('_', ' ', $day->status)) }}</x-badge>
+                    </td>
                     <td class="px-4 py-3 text-slate-500">{{ $day->clock_in_at?->format('g:i A') ?? '—' }}</td>
                     <td class="px-4 py-3 text-slate-500">{{ $day->clock_out_at?->format('g:i A') ?? '—' }}</td>
                 </tr>

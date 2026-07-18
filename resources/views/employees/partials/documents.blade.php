@@ -1,7 +1,7 @@
 <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
     <div class="lg:col-span-2">
         <x-card class="!p-0 overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-200 text-sm">
+            <table class="min-w-full divide-y divide-slate-100 text-sm">
                 <thead class="bg-slate-50">
                     <tr>
                         <th class="px-4 py-3 text-left font-medium text-slate-500">File</th>

@@ -7,7 +7,7 @@
 </div>
 
 <x-card class="!p-0 overflow-x-auto">
-    <table class="min-w-full divide-y divide-slate-200 text-sm">
+    <table class="min-w-full divide-y divide-slate-100 text-sm">
         <thead class="bg-slate-50">
             <tr>
                 <th class="px-4 py-3 text-left font-medium text-slate-500">Effective from</th>
@@ -32,7 +32,9 @@
                         <td class="px-4 py-3 text-slate-500">{{ number_format($employment->basic_salary) }} {{ $employment->currency }}</td>
                     @endcan
                     <td class="px-4 py-3 text-slate-500">{{ ucfirst(str_replace('_', ' ', $employment->reason)) }}</td>
-                    <td class="px-4 py-3 text-slate-500">{{ ucfirst($employment->status) }}</td>
+                    <td class="px-4 py-3">
+                        <x-badge :color="$employment->status === 'active' ? 'success' : 'neutral'">{{ ucfirst($employment->status) }}</x-badge>
+                    </td>
                 </tr>
             @empty
                 <tr>

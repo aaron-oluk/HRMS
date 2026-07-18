@@ -9,6 +9,7 @@ use App\Models\LeaveRequest;
 use App\Models\LeaveType;
 use App\Support\Approvals\TeamScope;
 use App\Support\Leave\LeaveBalance;
+use Carbon\CarbonPeriod;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -43,7 +44,48 @@ class DashboardController extends Controller
             'departmentHeadcount' => $this->departmentHeadcount($user, $tenant?->id),
             'activity' => $this->activity($user, $employee),
             'upcomingLeave' => $this->upcomingLeave($user),
+            'myWeeklyHours' => $this->myWeeklyHours($employee),
+            'myLeaveDatesThisMonth' => $this->myLeaveDatesThisMonth($employee),
         ]);
+    }
+
+    protected function myWeeklyHours(?Employee $employee): Collection
+    {
+        if (! $employee) {
+            return collect();
+        }
+
+        $start = now()->startOfWeek();
+        $days = collect();
+
+        for ($i = 0; $i < 7; $i++) {
+            $date = $start->copy()->addDays($i);
+            $attendanceDay = $employee->attendanceDays()->whereDate('date', $date->toDateString())->first();
+
+            $days->push([
+                'label' => $date->format('D'),
+                'hours' => $attendanceDay ? round(($attendanceDay->worked_minutes ?? 0) / 60, 1) : 0.0,
+                'isToday' => $date->isToday(),
+            ]);
+        }
+
+        return $days;
+    }
+
+    protected function myLeaveDatesThisMonth(?Employee $employee): Collection
+    {
+        if (! $employee) {
+            return collect();
+        }
+
+        return $employee->leaveRequests()
+            ->whereIn('status', ['approved', 'pending'])
+            ->where('start_date', '<=', now()->endOfMonth()->toDateString())
+            ->where('end_date', '>=', now()->startOfMonth()->toDateString())
+            ->get()
+            ->flatMap(fn (LeaveRequest $r) => collect(CarbonPeriod::create($r->start_date, $r->end_date))->map(fn ($d) => $d->toDateString()))
+            ->unique()
+            ->values();
     }
 
     protected function onLeaveTodayCount($user): ?int

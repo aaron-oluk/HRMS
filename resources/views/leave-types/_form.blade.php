@@ -37,13 +37,13 @@
 
     <div class="flex items-center gap-x-2 pt-6">
         <input type="hidden" name="is_paid" value="0">
-        <input id="is_paid" type="checkbox" name="is_paid" value="1" @checked(old('is_paid', $leaveType?->is_paid ?? true)) class="rounded border border-slate-300 text-indigo-600 focus:ring-indigo-500">
+        <x-checkbox id="is_paid" name="is_paid" value="1" @checked(old('is_paid', $leaveType?->is_paid ?? true)) />
         <x-label for="is_paid" value="Paid leave" class="!mb-0" />
     </div>
 
     <div class="flex items-center gap-x-2 pt-6">
         <input type="hidden" name="requires_approval" value="0">
-        <input id="requires_approval" type="checkbox" name="requires_approval" value="1" @checked(old('requires_approval', $leaveType?->requires_approval ?? true)) class="rounded border border-slate-300 text-indigo-600 focus:ring-indigo-500">
+        <x-checkbox id="requires_approval" name="requires_approval" value="1" @checked(old('requires_approval', $leaveType?->requires_approval ?? true)) />
         <x-label for="requires_approval" value="Requires approval" class="!mb-0" />
     </div>
 

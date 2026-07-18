@@ -11,14 +11,25 @@ use App\Models\Entity;
 use App\Support\Audit\AccessAudit;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class EmployeeController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $employees = Employee::with('currentEmployment.position', 'entity')->latest()->paginate(15);
+        $search = $request->string('q')->trim()->toString();
 
-        return view('employees.index', ['employees' => $employees]);
+        $employees = Employee::with('currentEmployment.position', 'entity')
+            ->when($search !== '', fn ($query) => $query->where(fn ($q) => $q
+                ->where('first_name', 'like', "%{$search}%")
+                ->orWhere('last_name', 'like', "%{$search}%")
+                ->orWhere('employee_number', 'like', "%{$search}%")
+            ))
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('employees.index', ['employees' => $employees, 'search' => $search]);
     }
 
     public function create(): View

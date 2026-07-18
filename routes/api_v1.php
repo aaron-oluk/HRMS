@@ -29,86 +29,89 @@ use Illuminate\Support\Facades\Route;
 // can be re-added here, after IdentifyTenant, instead of before it.
 //
 // Access control lives here, on the routes, rather than inside controllers/requests:
-// every permission-gated action is declared with a 'permission:<name>' middleware.
-// Record-level scoping (e.g. "only your direct reports/department") still happens
-// inside the relevant Action class (see App\Support\Approvals\TeamScope), since that
-// depends on which record is being acted on, not just which role the actor holds.
+// every gated action is declared with a 'role:RoleA|RoleB' middleware, listing every
+// role (see App\Actions\Tenancy\ProvisionDefaultRoles::ROLE_PERMISSIONS) that should
+// reach it. Record-level scoping (e.g. "only your direct reports/department") still
+// happens inside the relevant Action class (see App\Support\Approvals\TeamScope),
+// since that depends on which record is being acted on, not just which role the actor
+// holds. Blade's @can()/@cannot() checks (nav visibility, field-level display) still
+// use the underlying permission catalog — only route-level enforcement is role-based.
 Route::middleware(['auth:sanctum', IdentifyTenant::class, SubstituteBindings::class])->group(function (): void {
     Route::get('/user', fn () => request()->user());
 
     Route::apiResource('entities', EntityController::class)
-        ->middlewareFor(['index', 'show'], 'permission:org.view')
-        ->middlewareFor(['store', 'update', 'destroy'], 'permission:org.manage');
+        ->middlewareFor(['index', 'show'], 'role:HR Admin|HR Manager|HR Specialist|Department Manager|Auditor|Executive')
+        ->middlewareFor(['store', 'update', 'destroy'], 'role:HR Admin|HR Manager');
 
     Route::apiResource('branches', BranchController::class)
-        ->middlewareFor(['index', 'show'], 'permission:org.view')
-        ->middlewareFor(['store', 'update', 'destroy'], 'permission:org.manage');
+        ->middlewareFor(['index', 'show'], 'role:HR Admin|HR Manager|HR Specialist|Department Manager|Auditor|Executive')
+        ->middlewareFor(['store', 'update', 'destroy'], 'role:HR Admin|HR Manager');
 
     Route::apiResource('departments', DepartmentController::class)
-        ->middlewareFor(['index', 'show'], 'permission:org.view')
-        ->middlewareFor(['store', 'update', 'destroy'], 'permission:org.manage');
+        ->middlewareFor(['index', 'show'], 'role:HR Admin|HR Manager|HR Specialist|Department Manager|Auditor|Executive')
+        ->middlewareFor(['store', 'update', 'destroy'], 'role:HR Admin|HR Manager');
 
     Route::apiResource('positions', PositionController::class)
-        ->middlewareFor(['index', 'show'], 'permission:org.view')
-        ->middlewareFor(['store', 'update', 'destroy'], 'permission:org.manage');
+        ->middlewareFor(['index', 'show'], 'role:HR Admin|HR Manager|HR Specialist|Department Manager|Auditor|Executive')
+        ->middlewareFor(['store', 'update', 'destroy'], 'role:HR Admin|HR Manager');
 
     Route::apiResource('grades', GradeController::class)
-        ->middlewareFor(['index', 'show'], 'permission:org.view')
-        ->middlewareFor(['store', 'update', 'destroy'], 'permission:org.manage');
+        ->middlewareFor(['index', 'show'], 'role:HR Admin|HR Manager|HR Specialist|Department Manager|Auditor|Executive')
+        ->middlewareFor(['store', 'update', 'destroy'], 'role:HR Admin|HR Manager');
 
     Route::apiResource('users', UserController::class)->except('destroy')
-        ->middleware('permission:users.manage');
+        ->middleware('role:HR Admin');
 
     Route::apiResource('employees', EmployeeController::class)->except('destroy')
-        ->middlewareFor(['index', 'show'], 'permission:employees.view')
-        ->middlewareFor(['store'], 'permission:employees.create')
-        ->middlewareFor(['update'], 'permission:employees.update');
+        ->middlewareFor(['index', 'show'], 'role:HR Admin|HR Manager|HR Specialist|Department Manager|Team Lead|Auditor|Accountant|Executive')
+        ->middlewareFor(['store'], 'role:HR Admin|HR Manager|HR Specialist')
+        ->middlewareFor(['update'], 'role:HR Admin|HR Manager|HR Specialist|Department Manager');
 
     Route::apiResource('leave-types', LeaveTypeController::class)
-        ->middlewareFor(['index', 'show'], 'permission:org.view')
-        ->middlewareFor(['store', 'update', 'destroy'], 'permission:leave.manage-types');
+        ->middlewareFor(['index', 'show'], 'role:HR Admin|HR Manager|HR Specialist|Department Manager|Auditor|Executive')
+        ->middlewareFor(['store', 'update', 'destroy'], 'role:HR Admin|HR Manager|HR Specialist');
 
     Route::apiResource('leave-requests', LeaveRequestController::class)->only(['index', 'store']);
-    Route::get('leave-approvals', [LeaveApprovalController::class, 'index'])->middleware('permission:leave.approve');
-    Route::post('leave-requests/{leaveRequest}/approve', [LeaveApprovalController::class, 'approve'])->middleware('permission:leave.approve');
-    Route::post('leave-requests/{leaveRequest}/reject', [LeaveApprovalController::class, 'reject'])->middleware('permission:leave.approve');
+    Route::get('leave-approvals', [LeaveApprovalController::class, 'index'])->middleware('role:HR Admin|HR Manager|HR Specialist|Department Manager|Team Lead');
+    Route::post('leave-requests/{leaveRequest}/approve', [LeaveApprovalController::class, 'approve'])->middleware('role:HR Admin|HR Manager|HR Specialist|Department Manager|Team Lead');
+    Route::post('leave-requests/{leaveRequest}/reject', [LeaveApprovalController::class, 'reject'])->middleware('role:HR Admin|HR Manager|HR Specialist|Department Manager|Team Lead');
 
     Route::apiResource('shifts', ShiftController::class)
-        ->middlewareFor(['index', 'show'], 'permission:org.view')
-        ->middlewareFor(['store', 'update', 'destroy'], 'permission:attendance.manage-shifts');
+        ->middlewareFor(['index', 'show'], 'role:HR Admin|HR Manager|HR Specialist|Department Manager|Auditor|Executive')
+        ->middlewareFor(['store', 'update', 'destroy'], 'role:HR Admin|HR Manager|HR Specialist|Department Manager');
 
     Route::get('attendance/my-timesheet', [AttendanceController::class, 'myTimesheet']);
-    Route::get('attendance/team-today', [AttendanceController::class, 'teamToday'])->middleware('permission:attendance.view-team');
+    Route::get('attendance/team-today', [AttendanceController::class, 'teamToday'])->middleware('role:HR Admin|HR Manager|HR Specialist|Department Manager|Team Lead');
     Route::post('attendance/clock-in', [AttendanceController::class, 'clockIn']);
     Route::post('attendance/clock-out', [AttendanceController::class, 'clockOut']);
 
     Route::apiResource('overtime-requests', OvertimeRequestController::class)->only(['index', 'store']);
-    Route::get('overtime-approvals', [OvertimeApprovalController::class, 'index'])->middleware('permission:attendance.approve-overtime');
-    Route::post('overtime-requests/{overtimeRequest}/approve', [OvertimeApprovalController::class, 'approve'])->middleware('permission:attendance.approve-overtime');
-    Route::post('overtime-requests/{overtimeRequest}/reject', [OvertimeApprovalController::class, 'reject'])->middleware('permission:attendance.approve-overtime');
+    Route::get('overtime-approvals', [OvertimeApprovalController::class, 'index'])->middleware('role:HR Admin|HR Manager|HR Specialist|Department Manager|Team Lead');
+    Route::post('overtime-requests/{overtimeRequest}/approve', [OvertimeApprovalController::class, 'approve'])->middleware('role:HR Admin|HR Manager|HR Specialist|Department Manager|Team Lead');
+    Route::post('overtime-requests/{overtimeRequest}/reject', [OvertimeApprovalController::class, 'reject'])->middleware('role:HR Admin|HR Manager|HR Specialist|Department Manager|Team Lead');
 
     Route::scopeBindings()->group(function (): void {
         Route::apiResource('employees.employments', EmploymentController::class)
             ->only(['index', 'store'])
-            ->middlewareFor(['index'], 'permission:employees.view')
-            ->middlewareFor(['store'], 'permission:employments.manage');
+            ->middlewareFor(['index'], 'role:HR Admin|HR Manager|HR Specialist|Department Manager|Team Lead|Auditor|Accountant|Executive')
+            ->middlewareFor(['store'], 'role:HR Admin|HR Manager');
 
         Route::apiResource('employees.documents', EmployeeDocumentController::class)
             ->parameters(['documents' => 'document'])
             ->only(['index', 'store', 'destroy'])
-            ->middlewareFor(['index'], 'permission:employees.view-documents')
-            ->middlewareFor(['store', 'destroy'], 'permission:employees.manage-documents');
+            ->middlewareFor(['index'], 'role:HR Admin|HR Manager|HR Specialist|Department Manager|Auditor')
+            ->middlewareFor(['store', 'destroy'], 'role:HR Admin|HR Manager|HR Specialist|Department Manager');
 
         Route::apiResource('employees.bank-accounts', EmployeeBankAccountController::class)
             ->parameters(['bank-accounts' => 'bankAccount'])
             ->only(['index', 'store', 'update', 'destroy'])
-            ->middlewareFor(['index'], 'permission:employees.view-bank-details')
-            ->middlewareFor(['store', 'update', 'destroy'], 'permission:employees.update');
+            ->middlewareFor(['index'], 'role:HR Admin|HR Manager|Auditor|Accountant')
+            ->middlewareFor(['store', 'update', 'destroy'], 'role:HR Admin|HR Manager|HR Specialist|Department Manager');
 
         Route::apiResource('employees.mobile-money', EmployeeMobileMoneyController::class)
             ->parameters(['mobile-money' => 'mobileMoney'])
             ->only(['index', 'store', 'update', 'destroy'])
-            ->middlewareFor(['index'], 'permission:employees.view-bank-details')
-            ->middlewareFor(['store', 'update', 'destroy'], 'permission:employees.update');
+            ->middlewareFor(['index'], 'role:HR Admin|HR Manager|Auditor|Accountant')
+            ->middlewareFor(['store', 'update', 'destroy'], 'role:HR Admin|HR Manager|HR Specialist|Department Manager');
     });
 });

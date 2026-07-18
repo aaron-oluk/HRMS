@@ -3,7 +3,7 @@
         <div class="space-y-4">
             <x-card class="!p-0 overflow-x-auto">
                 <div class="border-b border-slate-100 px-4 py-3 text-sm font-semibold text-slate-900">Bank accounts</div>
-                <table class="min-w-full divide-y divide-slate-200 text-sm">
+                <table class="min-w-full divide-y divide-slate-100 text-sm">
                     <tbody class="divide-y divide-slate-100">
                         @forelse ($employee->bankAccounts as $account)
                             <tr>
@@ -54,7 +54,7 @@
         <div class="space-y-4">
             <x-card class="!p-0 overflow-x-auto">
                 <div class="border-b border-slate-100 px-4 py-3 text-sm font-semibold text-slate-900">Mobile money</div>
-                <table class="min-w-full divide-y divide-slate-200 text-sm">
+                <table class="min-w-full divide-y divide-slate-100 text-sm">
                     <tbody class="divide-y divide-slate-100">
                         @forelse ($employee->mobileMoneyAccounts as $momo)
                             <tr>

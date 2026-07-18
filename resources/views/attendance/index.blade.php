@@ -28,7 +28,7 @@
         <x-card class="lg:col-span-2">
             <p class="mb-4 text-sm font-semibold text-slate-900">My timesheet — this week</p>
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200 text-sm">
+                <table class="min-w-full divide-y divide-slate-100 text-sm">
                     <thead class="bg-slate-50">
                         <tr>
                             <th class="px-4 py-3 text-left font-medium text-slate-500">Date</th>
@@ -47,17 +47,15 @@
                                 <td class="px-4 py-3 text-slate-500">{{ number_format($day->worked_minutes / 60, 1) }}</td>
                                 <td class="px-4 py-3">
                                     @php
-                                        $statusColors = [
-                                            'present' => 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
-                                            'late' => 'bg-amber-50 text-amber-700 ring-amber-600/20',
-                                            'absent' => 'bg-red-50 text-red-700 ring-red-600/20',
-                                            'on_leave' => 'bg-indigo-50 text-indigo-700 ring-indigo-600/20',
-                                            'holiday' => 'bg-slate-50 text-slate-600 ring-slate-500/20',
-                                        ];
+                                        $statusColor = match ($day->status) {
+                                            'present' => 'success',
+                                            'late' => 'warning',
+                                            'absent' => 'danger',
+                                            'on_leave' => 'info',
+                                            default => 'neutral',
+                                        };
                                     @endphp
-                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset {{ $statusColors[$day->status] ?? '' }}">
-                                        {{ ucfirst(str_replace('_', ' ', $day->status)) }}
-                                    </span>
+                                    <x-badge :color="$statusColor">{{ ucfirst(str_replace('_', ' ', $day->status)) }}</x-badge>
                                 </td>
                             </tr>
                         @empty
@@ -99,7 +97,7 @@
                         </div>
                         <div>
                             <x-label for="ot_reason" value="Reason (optional)" />
-                            <textarea id="ot_reason" name="reason" rows="3" class="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 shadow-sm text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"></textarea>
+                            <textarea id="ot_reason" name="reason" rows="3" class="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 shadow-sm text-sm text-slate-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"></textarea>
                             <x-input-error :messages="$errors->get('reason')" class="mt-1" />
                         </div>
                         <div class="flex justify-end gap-x-3 pt-2">

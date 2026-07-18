@@ -6,7 +6,7 @@
     </div>
 
     <x-card class="!p-0 overflow-x-auto">
-        <table class="min-w-full divide-y divide-slate-200 text-sm">
+        <table class="min-w-full divide-y divide-slate-100 text-sm">
             <thead class="bg-slate-50">
                 <tr>
                     <th class="px-4 py-3 text-left font-medium text-slate-500">Title</th>
@@ -22,10 +22,10 @@
                         <td class="px-4 py-3 font-medium text-slate-900">{{ $position->title }}</td>
                         <td class="px-4 py-3 text-slate-500">{{ $position->entity->name }}</td>
                         <td class="px-4 py-3 text-slate-500">{{ $position->department?->name ?? '—' }}</td>
-                        <td class="px-4 py-3 text-slate-500">{{ ucfirst($position->status) }}</td>
+                        <td class="px-4 py-3"><x-badge :color="$position->status === 'active' ? 'success' : 'neutral'">{{ ucfirst($position->status) }}</x-badge></td>
                         <td class="px-4 py-3 text-right">
                             @can('org.manage')
-                                <a href="{{ route('positions.edit', $position) }}" class="text-indigo-600 hover:text-indigo-500">Edit</a>
+                                <a href="{{ route('positions.edit', $position) }}" class="text-emerald-600 hover:text-emerald-500">Edit</a>
                             @endcan
                         </td>
                     </tr>

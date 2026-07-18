@@ -6,7 +6,7 @@
         ['label' => 'Add user', 'route' => 'users.create', 'icon' => 'bx-user-circle', 'show' => auth()->user()->can('users.manage')],
     ])->filter(fn ($action) => $action['show']);
 
-    $donutColors = ['#4338ca', '#6366f1', '#818cf8', '#a5b4fc', '#c7d2fe', '#e0e7ff'];
+    $donutColors = ['#059669', '#10b981', '#34d399', '#6ee7b7', '#a7f3d0', '#d1fae5'];
     $donutTotal = $departmentHeadcount->sum('total');
     $cumulative = 0;
     $donutSegments = $departmentHeadcount->values()->map(function ($row, $i) use (&$cumulative, $donutTotal, $donutColors) {
@@ -22,8 +22,8 @@
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         @if ($myLeaveBalance !== null)
             <x-card class="flex items-center gap-x-4">
-                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-indigo-50">
-                    <i class="bx bx-calendar-check text-2xl text-indigo-600"></i>
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-emerald-50">
+                    <i class="bx bx-calendar-check text-2xl text-emerald-600"></i>
                 </div>
                 <div>
                     <p class="text-sm text-slate-500">My leave balance</p>
@@ -34,8 +34,8 @@
 
         @if ($pendingApprovalsCount !== null)
             <x-card class="flex items-center gap-x-4">
-                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-indigo-50">
-                    <i class="bx bx-check-shield text-2xl text-indigo-600"></i>
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-emerald-50">
+                    <i class="bx bx-check-shield text-2xl text-emerald-600"></i>
                 </div>
                 <div>
                     <p class="text-sm text-slate-500">Pending approvals</p>
@@ -46,8 +46,8 @@
 
         @can('employees.view')
             <x-card class="flex items-center gap-x-4">
-                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-indigo-50">
-                    <i class="bx bx-group text-2xl text-indigo-600"></i>
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-emerald-50">
+                    <i class="bx bx-group text-2xl text-emerald-600"></i>
                 </div>
                 <div>
                     <p class="text-sm text-slate-500">Employees</p>
@@ -56,8 +56,8 @@
             </x-card>
 
             <x-card class="flex items-center gap-x-4">
-                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-indigo-50">
-                    <i class="bx bxs-plane-alt text-2xl text-indigo-600"></i>
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-emerald-50">
+                    <i class="bx bxs-plane-alt text-2xl text-emerald-600"></i>
                 </div>
                 <div>
                     <p class="text-sm text-slate-500">On leave today</p>
@@ -68,8 +68,8 @@
 
         @can('org.view')
             <x-card class="flex items-center gap-x-4">
-                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-indigo-50">
-                    <i class="bx bx-buildings text-2xl text-indigo-600"></i>
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-emerald-50">
+                    <i class="bx bx-buildings text-2xl text-emerald-600"></i>
                 </div>
                 <div>
                     <p class="text-sm text-slate-500">Entities</p>
@@ -90,6 +90,63 @@
                 @endforeach
             </div>
         </x-card>
+    @endif
+
+    @if ($myWeeklyHours->isNotEmpty())
+        <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <x-card>
+                <p class="mb-4 text-sm font-semibold text-slate-900">Hours this week</p>
+                @php
+                    $maxHours = max(8, $myWeeklyHours->max('hours'));
+                @endphp
+                <div class="flex h-32 items-end justify-between gap-x-2">
+                    @foreach ($myWeeklyHours as $day)
+                        <div class="flex h-full flex-1 flex-col items-center justify-end gap-y-1.5">
+                            <span class="text-xs text-slate-400">{{ $day['hours'] > 0 ? $day['hours'] : '' }}</span>
+                            <div class="flex w-full flex-1 items-end">
+                                <div
+                                    class="w-full rounded-t {{ $day['isToday'] ? 'bg-emerald-500' : 'bg-emerald-100' }}"
+                                    style="height: {{ $day['hours'] > 0 ? max(6, ($day['hours'] / $maxHours) * 100) : 2 }}%"
+                                ></div>
+                            </div>
+                            <span class="text-xs font-medium {{ $day['isToday'] ? 'text-emerald-600' : 'text-slate-400' }}">{{ $day['label'] }}</span>
+                        </div>
+                    @endforeach
+                </div>
+            </x-card>
+
+            <x-card>
+                @php
+                    $month = now();
+                    $firstDayOfMonth = $month->copy()->startOfMonth();
+                    $startOffset = $firstDayOfMonth->dayOfWeekIso - 1;
+                @endphp
+                <p class="mb-4 text-sm font-semibold text-slate-900">{{ $month->format('F Y') }}</p>
+                <div class="grid grid-cols-7 gap-y-1 text-center text-xs">
+                    @foreach (['M', 'T', 'W', 'T', 'F', 'S', 'S'] as $dayLabel)
+                        <div class="py-1 font-medium text-slate-400">{{ $dayLabel }}</div>
+                    @endforeach
+                    @for ($i = 0; $i < $startOffset; $i++)
+                        <div></div>
+                    @endfor
+                    @for ($day = 1; $day <= $month->daysInMonth; $day++)
+                        @php
+                            $date = $firstDayOfMonth->copy()->addDays($day - 1);
+                            $isToday = $date->isToday();
+                            $hasLeave = $myLeaveDatesThisMonth->contains($date->toDateString());
+                        @endphp
+                        <div class="flex items-center justify-center py-0.5">
+                            <span @class([
+                                'flex h-7 w-7 items-center justify-center rounded-full',
+                                'bg-emerald-500 font-semibold text-white' => $isToday,
+                                'bg-emerald-50 text-emerald-700' => $hasLeave && ! $isToday,
+                                'text-slate-600' => ! $isToday && ! $hasLeave,
+                            ])>{{ $day }}</span>
+                        </div>
+                    @endfor
+                </div>
+            </x-card>
+        </div>
     @endif
 
     <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -121,7 +178,7 @@
                     @foreach ($activity as $item)
                         <div class="flex items-start gap-x-3 border-b border-slate-100 py-3 last:border-b-0 last:pb-0">
                             <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100">
-                                <i class="bx {{ $item['icon'] }} text-base text-indigo-600"></i>
+                                <i class="bx {{ $item['icon'] }} text-base text-emerald-600"></i>
                             </div>
                             <div class="min-w-0">
                                 <p class="text-sm text-slate-700">{{ $item['text'] }}</p>
@@ -140,8 +197,8 @@
                     @foreach ($upcomingLeave as $request)
                         <div class="flex items-center justify-between py-2.5">
                             <div class="flex items-center gap-x-3">
-                                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-50">
-                                    <i class="bx bx-calendar text-base text-indigo-600"></i>
+                                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-50">
+                                    <i class="bx bx-calendar text-base text-emerald-600"></i>
                                 </div>
                                 <p class="text-sm text-slate-700">{{ $request->employee->fullName() }} · {{ $request->leaveType->name }}</p>
                             </div>
