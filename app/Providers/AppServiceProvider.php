@@ -65,6 +65,8 @@ class AppServiceProvider extends ServiceProvider
 
             $view->with('pendingLeaveApprovalsCount', $pendingLeaveApprovalsCount);
             $view->with('pendingOvertimeApprovalsCount', $pendingOvertimeApprovalsCount);
+            $view->with('recentNotifications', $user ? $user->notifications()->latest()->limit(8)->get() : collect());
+            $view->with('unreadNotificationsCount', $user?->unreadNotifications()->count() ?? 0);
         });
     }
 }

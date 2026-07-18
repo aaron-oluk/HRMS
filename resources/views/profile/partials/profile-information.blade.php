@@ -1,17 +1,41 @@
 @php
     $employee = auth()->user()->employee;
+
+    $accountRows = collect([
+        ['icon' => 'bx-id-card', 'label' => 'Role', 'value' => auth()->user()->getRoleNames()->first() ?? '—'],
+        ['icon' => 'bx-buildings', 'label' => 'Organization', 'value' => auth()->user()->tenant?->name ?? '—'],
+    ]);
+
+    if ($employee) {
+        $accountRows->push(['icon' => 'bx-hash', 'label' => 'Employee #', 'value' => $employee->employee_number]);
+        $accountRows->push(['icon' => 'bx-briefcase', 'label' => 'Position', 'value' => $employee->currentEmployment?->position?->title ?? '—']);
+        $accountRows->push(['icon' => 'bx-sitemap', 'label' => 'Department', 'value' => $employee->currentEmployment?->department?->name ?? '—']);
+        $accountRows->push(['icon' => 'bx-building-house', 'label' => 'Entity', 'value' => $employee->entity?->name ?? '—']);
+    }
+
+    $statusColor = match (auth()->user()->status) {
+        'active' => 'success',
+        'invited' => 'info',
+        'suspended' => 'danger',
+        default => 'neutral',
+    };
 @endphp
 
-<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-    <x-card class="lg:col-span-2">
-        <h3 class="text-sm font-semibold text-slate-900">Your details</h3>
-        <p class="mt-1 text-sm text-slate-500">Update your name and email address.</p>
+<div class="grid grid-cols-2 gap-4">
+    <x-card>
+        <div class="mb-6 flex items-center gap-x-4 border-b border-slate-100 pb-5">
+            <x-avatar :name="auth()->user()->name" size="lg" />
+            <div>
+                <h3 class="text-sm font-semibold text-slate-900">Your details</h3>
+                <p class="mt-1 text-sm text-slate-500">Update your name and email address.</p>
+            </div>
+        </div>
 
         @if (session('status') === 'profile-information-updated')
-            <x-alert type="success" class="mt-4">Profile updated.</x-alert>
+            <x-alert type="success" class="mb-6">Profile updated.</x-alert>
         @endif
 
-        <form method="POST" action="{{ route('user-profile-information.update') }}" class="mt-6 space-y-5">
+        <form method="POST" action="{{ route('user-profile-information.update') }}" class="space-y-5">
             @csrf
             @method('PUT')
 
@@ -32,49 +56,20 @@
     </x-card>
 
     <x-card>
-        <h3 class="text-sm font-semibold text-slate-900">Account</h3>
-        <dl class="mt-4 space-y-4 text-sm">
-            <div>
-                <dt class="text-xs font-medium uppercase text-slate-500">Role</dt>
-                <dd class="mt-1 text-slate-900">{{ auth()->user()->getRoleNames()->first() ?? '—' }}</dd>
-            </div>
-            <div>
-                <dt class="text-xs font-medium uppercase text-slate-500">Status</dt>
-                <dd class="mt-1">
-                    @php
-                        $statusColor = match (auth()->user()->status) {
-                            'active' => 'success',
-                            'invited' => 'info',
-                            'suspended' => 'danger',
-                            default => 'neutral',
-                        };
-                    @endphp
-                    <x-badge :color="$statusColor">{{ ucfirst(auth()->user()->status) }}</x-badge>
-                </dd>
-            </div>
-            <div>
-                <dt class="text-xs font-medium uppercase text-slate-500">Organization</dt>
-                <dd class="mt-1 text-slate-900">{{ auth()->user()->tenant?->name ?? '—' }}</dd>
-            </div>
-
-            @if ($employee)
-                <div>
-                    <dt class="text-xs font-medium uppercase text-slate-500">Employee #</dt>
-                    <dd class="mt-1 text-slate-900">{{ $employee->employee_number }}</dd>
+        <div class="mb-2 flex items-center justify-between border-b border-slate-100 pb-4">
+            <h3 class="text-sm font-semibold text-slate-900">Account</h3>
+            <x-badge :color="$statusColor">{{ ucfirst(auth()->user()->status) }}</x-badge>
+        </div>
+        <dl class="divide-y divide-slate-100">
+            @foreach ($accountRows as $row)
+                <div class="flex items-center justify-between gap-x-3 py-3">
+                    <dt class="flex items-center gap-x-2 text-sm text-slate-500">
+                        <i class="bx {{ $row['icon'] }} text-base text-slate-400"></i>
+                        {{ $row['label'] }}
+                    </dt>
+                    <dd class="truncate text-sm font-medium text-slate-900">{{ $row['value'] }}</dd>
                 </div>
-                <div>
-                    <dt class="text-xs font-medium uppercase text-slate-500">Position</dt>
-                    <dd class="mt-1 text-slate-900">{{ $employee->currentEmployment?->position?->title ?? '—' }}</dd>
-                </div>
-                <div>
-                    <dt class="text-xs font-medium uppercase text-slate-500">Department</dt>
-                    <dd class="mt-1 text-slate-900">{{ $employee->currentEmployment?->department?->name ?? '—' }}</dd>
-                </div>
-                <div>
-                    <dt class="text-xs font-medium uppercase text-slate-500">Entity</dt>
-                    <dd class="mt-1 text-slate-900">{{ $employee->entity?->name ?? '—' }}</dd>
-                </div>
-            @endif
+            @endforeach
         </dl>
     </x-card>
 </div>

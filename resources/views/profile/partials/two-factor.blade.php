@@ -1,9 +1,16 @@
 <div x-data="twoFactorAuth({{ $twoFactorEnabled ? 'true' : 'false' }})" class="max-w-xl">
     <x-card>
-        <h3 class="text-sm font-semibold text-slate-900">Two-factor authentication</h3>
-        <p class="mt-1 text-sm text-slate-500">
-            Add an extra layer of security to your account using a TOTP-compatible authenticator app.
-        </p>
+        <div class="mb-6 flex items-center gap-x-4 border-b border-slate-100 pb-5">
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-emerald-50">
+                <i class="bx bx-shield-quarter text-xl text-emerald-600"></i>
+            </span>
+            <div>
+                <h3 class="text-sm font-semibold text-slate-900">Two-factor authentication</h3>
+                <p class="mt-1 text-sm text-slate-500">
+                    Add an extra layer of security to your account using a TOTP-compatible authenticator app.
+                </p>
+            </div>
+        </div>
 
         <div x-show="error" x-cloak class="mt-4">
             <x-alert type="error" x-text="error"></x-alert>

@@ -129,37 +129,88 @@
             <h1 class="flex items-center gap-x-2 text-lg font-semibold text-slate-900">
                 {{ $header ?? '' }}
             </h1>
-            <div class="relative" x-data="{ open: false }">
-                <button @click="open = !open" @click.outside="open = false" class="flex items-center gap-x-2 rounded-lg px-1.5 py-1 transition hover:bg-slate-100">
-                    <x-avatar :name="auth()->user()->name" size="sm" />
-                    <span class="hidden text-sm font-medium text-slate-700 sm:block">{{ auth()->user()->name }}</span>
-                    <i class="bx bx-chevron-down hidden text-sm text-slate-400 sm:block"></i>
-                </button>
+            <div class="flex items-center gap-x-2">
+                <div class="relative" x-data="{ open: false }">
+                    <button @click="open = !open" @click.outside="open = false" class="relative flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-700">
+                        <i class="bx bx-bell text-xl"></i>
+                        @if ($unreadNotificationsCount > 0)
+                            <span class="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500"></span>
+                        @endif
+                    </button>
 
-                <div
-                    x-cloak
-                    x-show="open"
-                    x-transition
-                    class="absolute right-0 z-20 mt-2 w-56 origin-top-right rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
-                >
-                    <div class="flex items-center gap-x-3 border-b border-slate-100 px-3 py-3">
-                        <x-avatar :name="auth()->user()->name" size="sm" />
-                        <div class="min-w-0">
-                            <p class="truncate text-sm font-medium text-slate-900">{{ auth()->user()->name }}</p>
-                            <p class="truncate text-xs text-slate-500">{{ auth()->user()->email }}</p>
+                    <div
+                        x-cloak
+                        x-show="open"
+                        x-transition
+                        class="absolute right-0 z-20 mt-2 w-80 origin-top-right rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
+                    >
+                        <div class="flex items-center justify-between border-b border-slate-100 px-3 py-2.5">
+                            <p class="text-sm font-semibold text-slate-900">Notifications</p>
+                            @if ($unreadNotificationsCount > 0)
+                                <form method="POST" action="{{ route('notifications.read-all') }}">
+                                    @csrf
+                                    <button type="submit" class="text-xs font-medium text-emerald-600 hover:text-emerald-500">Mark all as read</button>
+                                </form>
+                            @endif
+                        </div>
+
+                        <div class="max-h-80 overflow-y-auto">
+                            @forelse ($recentNotifications as $notification)
+                                <a
+                                    href="{{ route('notifications.read', $notification->id) }}"
+                                    class="flex items-start gap-x-3 px-3 py-3 text-sm hover:bg-slate-50 {{ $notification->read_at ? '' : 'bg-emerald-50/60' }}"
+                                >
+                                    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-50">
+                                        <i class="bx {{ $notification->data['icon'] ?? 'bx-bell' }} text-base text-emerald-600"></i>
+                                    </span>
+                                    <div class="min-w-0 flex-1">
+                                        <p class="font-medium text-slate-900">{{ $notification->data['title'] }}</p>
+                                        <p class="mt-0.5 text-slate-500">{{ $notification->data['message'] }}</p>
+                                        <p class="mt-0.5 text-xs text-slate-400">{{ $notification->created_at->diffForHumans() }}</p>
+                                    </div>
+                                    @unless ($notification->read_at)
+                                        <span class="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-emerald-500"></span>
+                                    @endunless
+                                </a>
+                            @empty
+                                <p class="px-3 py-6 text-center text-sm text-slate-500">No notifications yet.</p>
+                            @endforelse
                         </div>
                     </div>
-                    <a href="{{ route('profile.edit') }}" class="flex items-center gap-x-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
-                        <i class="bx bx-user text-base text-slate-400"></i>
-                        My Profile
-                    </a>
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="flex w-full items-center gap-x-2 px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50">
-                            <i class="bx bx-log-out text-base text-slate-400"></i>
-                            Log out
-                        </button>
-                    </form>
+                </div>
+
+                <div class="relative" x-data="{ open: false }">
+                    <button @click="open = !open" @click.outside="open = false" class="flex items-center gap-x-2 rounded-lg px-1.5 py-1 transition hover:bg-slate-100">
+                        <x-avatar :name="auth()->user()->name" size="sm" />
+                        <span class="hidden text-sm font-medium text-slate-700 sm:block">{{ auth()->user()->name }}</span>
+                        <i class="bx bx-chevron-down hidden text-sm text-slate-400 sm:block"></i>
+                    </button>
+
+                    <div
+                        x-cloak
+                        x-show="open"
+                        x-transition
+                        class="absolute right-0 z-20 mt-2 w-56 origin-top-right rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
+                    >
+                        <div class="flex items-center gap-x-3 border-b border-slate-100 px-3 py-3">
+                            <x-avatar :name="auth()->user()->name" size="sm" />
+                            <div class="min-w-0">
+                                <p class="truncate text-sm font-medium text-slate-900">{{ auth()->user()->name }}</p>
+                                <p class="truncate text-xs text-slate-500">{{ auth()->user()->email }}</p>
+                            </div>
+                        </div>
+                        <a href="{{ route('profile.edit') }}" class="flex items-center gap-x-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                            <i class="bx bx-user text-base text-slate-400"></i>
+                            My Profile
+                        </a>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="flex w-full items-center gap-x-2 px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50">
+                                <i class="bx bx-log-out text-base text-slate-400"></i>
+                                Log out
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </header>

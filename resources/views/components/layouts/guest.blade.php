@@ -20,7 +20,7 @@
         </div>
 
         <div class="w-full max-w-md">
-            <x-card class="shadow-lg">
+            <x-card>
                 {{ $slot }}
             </x-card>
         </div>

@@ -4,6 +4,7 @@ namespace App\Actions\Leave;
 
 use App\Models\LeaveRequest;
 use App\Models\User;
+use App\Notifications\GenericNotification;
 use App\Support\Approvals\TeamScope;
 use Illuminate\Auth\Access\AuthorizationException;
 
@@ -22,6 +23,13 @@ class ApproveLeaveRequest
             'approved_by' => $actor->id,
             'approved_at' => now(),
         ]);
+
+        $leaveRequest->employee->user?->notify(new GenericNotification(
+            title: 'Leave request approved',
+            message: "Your {$leaveRequest->leaveType->name} request for {$leaveRequest->start_date->toFormattedDateString()} was approved.",
+            icon: 'bxs-check-circle',
+            url: route('leave.index'),
+        ));
 
         return $leaveRequest;
     }

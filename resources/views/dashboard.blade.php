@@ -13,7 +13,10 @@
         ['label' => 'Add user', 'route' => 'users.create', 'icon' => 'bx-user-circle', 'show' => auth()->user()->can('users.manage')],
     ])->filter(fn ($action) => $action['show']);
 
-    $donutColors = ['#059669', '#10b981', '#34d399', '#6ee7b7', '#a7f3d0', '#d1fae5'];
+    // A validated categorical palette (fixed hue order, not shades of one color) —
+    // see the dataviz skill's reference palette. Adjacent pairs clear the CVD and
+    // normal-vision separation floors, so departments stay visually distinct.
+    $donutColors = ['#2a78d6', '#008300', '#e87ba4', '#eda100', '#1baf7a', '#eb6834', '#4a3aa7', '#e34948'];
     $donutTotal = $departmentHeadcount->sum('total');
     $cumulative = 0;
     $donutSegments = $departmentHeadcount->values()->map(function ($row, $i) use (&$cumulative, $donutTotal, $donutColors) {
@@ -208,7 +211,7 @@
                     <div class="flex flex-col items-center gap-y-4">
                         <div
                             class="h-32 w-32 shrink-0 rounded-full"
-                            style="background: radial-gradient(circle, white 55%, transparent 56%), conic-gradient({{ $donutSegments->map(fn ($s) => "{$s['color']} {$s['from']}% {$s['to']}%")->implode(', ') }})"
+                            style="background: radial-gradient(circle, white 42%, transparent 43%), conic-gradient({{ $donutSegments->map(fn ($s) => "{$s['color']} {$s['from']}% {$s['to']}%")->implode(', ') }})"
                         ></div>
                         <div class="flex w-full flex-col gap-y-2">
                             @foreach ($departmentHeadcount as $i => $row)

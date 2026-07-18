@@ -4,6 +4,7 @@ namespace App\Actions\Attendance;
 
 use App\Models\OvertimeRequest;
 use App\Models\User;
+use App\Notifications\GenericNotification;
 use App\Support\Approvals\TeamScope;
 use Illuminate\Auth\Access\AuthorizationException;
 
@@ -22,6 +23,13 @@ class ApproveOvertimeRequest
             'approved_by' => $actor->id,
             'approved_at' => now(),
         ]);
+
+        $overtimeRequest->employee->user?->notify(new GenericNotification(
+            title: 'Overtime request approved',
+            message: "Your {$overtimeRequest->hours}-hour overtime request for {$overtimeRequest->date->toFormattedDateString()} was approved.",
+            icon: 'bxs-check-circle',
+            url: route('attendance.index'),
+        ));
 
         return $overtimeRequest;
     }

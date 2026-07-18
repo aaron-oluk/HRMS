@@ -15,6 +15,7 @@ use App\Http\Controllers\Web\GradeController;
 use App\Http\Controllers\Web\InboxController;
 use App\Http\Controllers\Web\LeaveController;
 use App\Http\Controllers\Web\LeaveTypeController;
+use App\Http\Controllers\Web\NotificationController;
 use App\Http\Controllers\Web\PositionController;
 use App\Http\Controllers\Web\ProfileController;
 use App\Http\Controllers\Web\ShiftController;
@@ -36,6 +37,8 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::get('/inbox', [InboxController::class, 'index'])->name('inbox.index');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('/notifications/{notification}/read', [NotificationController::class, 'read'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
 
     Route::middleware('role:HR Admin|Auditor|Accountant')->group(function (): void {
         Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');

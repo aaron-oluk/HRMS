@@ -1,12 +1,19 @@
 <x-card class="max-w-xl">
-    <h3 class="text-sm font-semibold text-slate-900">Update password</h3>
-    <p class="mt-1 text-sm text-slate-500">Use a long, random password to keep your account secure.</p>
+    <div class="mb-6 flex items-center gap-x-4 border-b border-slate-100 pb-5">
+        <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-emerald-50">
+            <i class="bx bx-lock-alt text-xl text-emerald-600"></i>
+        </span>
+        <div>
+            <h3 class="text-sm font-semibold text-slate-900">Update password</h3>
+            <p class="mt-1 text-sm text-slate-500">Use a long, random password to keep your account secure.</p>
+        </div>
+    </div>
 
     @if (session('status') === 'password-updated')
-        <x-alert type="success" class="mt-4">Password updated.</x-alert>
+        <x-alert type="success" class="mb-6">Password updated.</x-alert>
     @endif
 
-    <form method="POST" action="{{ route('user-password.update') }}" class="mt-6 space-y-5">
+    <form method="POST" action="{{ route('user-password.update') }}" class="space-y-5">
         @csrf
         @method('PUT')
 

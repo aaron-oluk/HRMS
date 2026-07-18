@@ -8,6 +8,6 @@
         type="search"
         autocomplete="off"
         @disabled($disabled)
-        {{ $attributes->merge(['class' => 'block w-full rounded-lg border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 hover:border-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30']) }}
+        {{ $attributes->merge(['class' => 'block w-full rounded-sm border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 transition placeholder:text-slate-400 hover:border-slate-400 focus:border-emerald-500 focus:outline-none']) }}
     >
 </div>
