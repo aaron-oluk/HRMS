@@ -15,7 +15,7 @@
 
     <div>
         <x-label for="password" value="Password" />
-        <x-input id="password" type="password" name="password" autocomplete="new-password" class="mt-1" />
+        <x-password-input id="password" name="password" autocomplete="new-password" class="mt-1" />
         <p class="mt-1 text-xs text-slate-500">{{ $user ? 'Leave blank to keep the current password.' : 'Minimum 8 characters.' }}</p>
         <x-input-error :messages="$errors->get('password')" class="mt-1" />
     </div>

@@ -1,15 +1,7 @@
 <x-layouts.app title="Employees" header="Employees">
     <div class="mb-4 flex items-center justify-between gap-x-4">
-        <form method="GET" class="relative w-full max-w-xs">
-            <i class="bx bx-search absolute inset-y-0 left-3 flex items-center text-slate-400"></i>
-            <input
-                type="search"
-                name="q"
-                value="{{ $search }}"
-                placeholder="Search by name or employee #"
-                autocomplete="off"
-                class="block w-full rounded-lg border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 hover:border-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
-            >
+        <form method="GET" class="w-full max-w-xs">
+            <x-search-input name="q" :value="$search" placeholder="Search by name or employee #" />
         </form>
         @can('employees.create')
             <a href="{{ route('employees.create') }}"><x-button icon="bx-plus">Add employee</x-button></a>

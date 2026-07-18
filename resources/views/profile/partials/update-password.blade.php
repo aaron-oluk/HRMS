@@ -12,19 +12,19 @@
 
         <div>
             <x-label for="current_password" value="Current password" />
-            <x-input id="current_password" type="password" name="current_password" required autocomplete="current-password" class="mt-1" />
+            <x-password-input id="current_password" name="current_password" required autocomplete="current-password" class="mt-1" />
             <x-input-error :messages="$errors->updatePassword->get('current_password')" class="mt-1" />
         </div>
 
         <div>
             <x-label for="password" value="New password" />
-            <x-input id="password" type="password" name="password" required autocomplete="new-password" class="mt-1" />
+            <x-password-input id="password" name="password" required autocomplete="new-password" class="mt-1" />
             <x-input-error :messages="$errors->updatePassword->get('password')" class="mt-1" />
         </div>
 
         <div>
             <x-label for="password_confirmation" value="Confirm new password" />
-            <x-input id="password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password" class="mt-1" />
+            <x-password-input id="password_confirmation" name="password_confirmation" required autocomplete="new-password" class="mt-1" />
             <x-input-error :messages="$errors->updatePassword->get('password_confirmation')" class="mt-1" />
         </div>
 

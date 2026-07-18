@@ -1,5 +1,10 @@
 <x-layouts.app title="Record employment change" :header="'Record employment change · '.$employee->fullName()">
     <x-card class="max-w-3xl">
+        <div class="mb-6 border-b border-slate-100 pb-5">
+            <h2 class="text-base font-semibold text-slate-900">Record employment change</h2>
+            <p class="mt-1 text-sm text-slate-500">Log a new position, department, or salary for {{ $employee->fullName() }}.</p>
+        </div>
+
         <form method="POST" action="{{ route('employees.employments.store', $employee) }}">
             @csrf
 
@@ -84,7 +89,7 @@
                 </div>
             </div>
 
-            <div class="mt-6 flex justify-end gap-x-3">
+            <div class="mt-6 flex justify-end gap-x-3 border-t border-slate-100 pt-5">
                 <a href="{{ route('employees.show', $employee) }}"><x-button type="button" variant="secondary">Cancel</x-button></a>
                 <x-button type="submit">Save</x-button>
             </div>

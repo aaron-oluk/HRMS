@@ -7,5 +7,7 @@
     >
         {{ $slot }}
     </select>
-    <i class="bx bx-chevron-down pointer-events-none absolute inset-y-0 right-3 flex items-center text-base text-slate-400"></i>
+    <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+        <i class="bx bx-chevron-down text-base leading-none text-slate-400"></i>
+    </span>
 </div>

@@ -1,11 +1,16 @@
 <x-layouts.app title="Edit position" header="Edit position">
     <x-card class="max-w-3xl">
+        <div class="mb-6 border-b border-slate-100 pb-5">
+            <h2 class="text-base font-semibold text-slate-900">Edit position</h2>
+            <p class="mt-1 text-sm text-slate-500">Update this position's details.</p>
+        </div>
+
         <form method="POST" action="{{ route('positions.update', $position) }}">
             @csrf
             @method('PUT')
             @include('positions._form')
 
-            <div class="mt-6 flex justify-end gap-x-3">
+            <div class="mt-6 flex justify-end gap-x-3 border-t border-slate-100 pt-5">
                 <a href="{{ route('positions.index') }}"><x-button type="button" variant="secondary">Cancel</x-button></a>
                 <x-button type="submit">Save</x-button>
             </div>
