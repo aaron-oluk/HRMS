@@ -7,7 +7,6 @@ use App\Http\Requests\EmployeeDocumentRequest;
 use App\Models\Employee;
 use App\Models\EmployeeDocument;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Gate;
 
 class EmployeeDocumentController extends Controller
 {
@@ -27,8 +26,6 @@ class EmployeeDocumentController extends Controller
 
     public function destroy(Employee $employee, EmployeeDocument $document): RedirectResponse
     {
-        Gate::authorize('employees.manage-documents');
-
         $document->delete();
 
         return redirect()->route('employees.show', $employee)->with('status', 'Document deleted.');

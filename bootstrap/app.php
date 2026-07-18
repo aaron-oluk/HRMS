@@ -8,6 +8,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Routing\Middleware\SubstituteBindings;
+use Spatie\Permission\Exceptions\UnauthorizedException;
 use Spatie\Permission\Middleware\PermissionMiddleware;
 use Spatie\Permission\Middleware\RoleMiddleware;
 use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
@@ -45,7 +46,16 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->report(function (AuthorizationException $e): void {
-            AccessAudit::accessDenied(request()->user(), $e->getMessage());
+        // Both AuthorizationException and Spatie's UnauthorizedException are in Laravel's
+        // internal "don't report" list, so ->report() callbacks never fire for them. Log
+        // via ->render() instead (always runs), returning null so default rendering proceeds.
+        $exceptions->render(function (AuthorizationException $e, $request): void {
+            AccessAudit::accessDenied($request->user(), $e->getMessage());
+        });
+
+        // Route-level 'permission:' middleware (see routes/web.php, routes/api_v1.php)
+        // denies access via Spatie's own exception, not Laravel's AuthorizationException.
+        $exceptions->render(function (UnauthorizedException $e, $request): void {
+            AccessAudit::accessDenied($request->user(), $e->getMessage());
         });
     })->create();

@@ -7,7 +7,6 @@ use App\Http\Requests\EmployeeBankAccountRequest;
 use App\Models\Employee;
 use App\Models\EmployeeBankAccount;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Gate;
 
 class EmployeeBankAccountController extends Controller
 {
@@ -20,8 +19,6 @@ class EmployeeBankAccountController extends Controller
 
     public function destroy(Employee $employee, EmployeeBankAccount $bankAccount): RedirectResponse
     {
-        Gate::authorize('employees.update');
-
         $bankAccount->delete();
 
         return redirect()->route('employees.show', $employee)->with('status', 'Bank account removed.');

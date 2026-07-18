@@ -10,14 +10,11 @@ use App\Http\Resources\OvertimeRequestResource;
 use App\Models\OvertimeRequest;
 use App\Support\Approvals\TeamScope;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 
 class OvertimeApprovalController extends Controller
 {
     public function index(Request $request, TeamScope $teamScope)
     {
-        Gate::authorize('attendance.approve-overtime');
-
         $query = OvertimeRequest::with('employee')->pending()->latest('date');
 
         return OvertimeRequestResource::collection($teamScope->scopeToTeam($query, $request->user())->paginate(25));
@@ -25,8 +22,6 @@ class OvertimeApprovalController extends Controller
 
     public function approve(Request $request, OvertimeRequest $overtimeRequest, ApproveOvertimeRequest $approveOvertimeRequest)
     {
-        Gate::authorize('attendance.approve-overtime');
-
         return OvertimeRequestResource::make($approveOvertimeRequest->handle($overtimeRequest, $request->user()));
     }
 

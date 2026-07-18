@@ -7,14 +7,11 @@ use App\Http\Requests\EmployeeBankAccountRequest;
 use App\Http\Resources\EmployeeBankAccountResource;
 use App\Models\Employee;
 use App\Models\EmployeeBankAccount;
-use Illuminate\Support\Facades\Gate;
 
 class EmployeeBankAccountController extends Controller
 {
     public function index(Employee $employee)
     {
-        Gate::authorize('employees.view-bank-details');
-
         return EmployeeBankAccountResource::collection($employee->bankAccounts()->get());
     }
 
@@ -34,8 +31,6 @@ class EmployeeBankAccountController extends Controller
 
     public function destroy(Employee $employee, EmployeeBankAccount $bankAccount)
     {
-        Gate::authorize('employees.update');
-
         $bankAccount->delete();
 
         return response()->noContent();

@@ -7,14 +7,11 @@ use App\Http\Requests\GradeRequest;
 use App\Http\Resources\GradeResource;
 use App\Models\Grade;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 
 class GradeController extends Controller
 {
     public function index(Request $request)
     {
-        Gate::authorize('org.view');
-
         return GradeResource::collection(Grade::latest()->paginate(25));
     }
 
@@ -27,8 +24,6 @@ class GradeController extends Controller
 
     public function show(Grade $grade)
     {
-        Gate::authorize('org.view');
-
         return GradeResource::make($grade);
     }
 
@@ -41,8 +36,6 @@ class GradeController extends Controller
 
     public function destroy(Grade $grade)
     {
-        Gate::authorize('org.manage');
-
         $grade->delete();
 
         return response()->noContent();

@@ -12,8 +12,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('tenant_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('actor_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->string('auditable_type');
-            $table->unsignedBigInteger('auditable_id');
+            $table->string('auditable_type')->nullable();
+            $table->unsignedBigInteger('auditable_id')->nullable();
             $table->string('action');
             $table->string('field')->nullable();
             $table->text('old_value')->nullable();

@@ -7,14 +7,11 @@ use App\Http\Requests\LeaveTypeRequest;
 use App\Http\Resources\LeaveTypeResource;
 use App\Models\LeaveType;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 
 class LeaveTypeController extends Controller
 {
     public function index(Request $request)
     {
-        Gate::authorize('org.view');
-
         return LeaveTypeResource::collection(LeaveType::latest()->paginate(25));
     }
 
@@ -27,8 +24,6 @@ class LeaveTypeController extends Controller
 
     public function show(LeaveType $leaveType)
     {
-        Gate::authorize('org.view');
-
         return LeaveTypeResource::make($leaveType);
     }
 
@@ -41,8 +36,6 @@ class LeaveTypeController extends Controller
 
     public function destroy(LeaveType $leaveType)
     {
-        Gate::authorize('leave.manage-types');
-
         $leaveType->delete();
 
         return response()->noContent();

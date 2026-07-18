@@ -9,7 +9,7 @@ class EmploymentRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('employments.manage');
+        return true;
     }
 
     /**

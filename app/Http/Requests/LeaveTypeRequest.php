@@ -9,7 +9,7 @@ class LeaveTypeRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('leave.manage-types');
+        return true;
     }
 
     /**

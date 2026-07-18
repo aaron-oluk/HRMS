@@ -7,14 +7,11 @@ use App\Http\Requests\EmployeeDocumentRequest;
 use App\Http\Resources\EmployeeDocumentResource;
 use App\Models\Employee;
 use App\Models\EmployeeDocument;
-use Illuminate\Support\Facades\Gate;
 
 class EmployeeDocumentController extends Controller
 {
     public function index(Employee $employee)
     {
-        Gate::authorize('employees.view-documents');
-
         return EmployeeDocumentResource::collection($employee->documents()->latest()->paginate(25));
     }
 
@@ -34,8 +31,6 @@ class EmployeeDocumentController extends Controller
 
     public function destroy(Employee $employee, EmployeeDocument $document)
     {
-        Gate::authorize('employees.manage-documents');
-
         $document->delete();
 
         return response()->noContent();

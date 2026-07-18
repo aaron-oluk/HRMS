@@ -7,21 +7,16 @@ use App\Http\Requests\EntityRequest;
 use App\Models\Entity;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Gate;
 
 class EntityController extends Controller
 {
     public function index(): View
     {
-        Gate::authorize('org.view');
-
         return view('entities.index', ['entities' => Entity::latest()->paginate(15)]);
     }
 
     public function create(): View
     {
-        Gate::authorize('org.manage');
-
         return view('entities.create');
     }
 
@@ -34,8 +29,6 @@ class EntityController extends Controller
 
     public function edit(Entity $entity): View
     {
-        Gate::authorize('org.manage');
-
         return view('entities.edit', ['entity' => $entity]);
     }
 
@@ -48,8 +41,6 @@ class EntityController extends Controller
 
     public function destroy(Entity $entity): RedirectResponse
     {
-        Gate::authorize('org.manage');
-
         $entity->delete();
 
         return redirect()->route('entities.index')->with('status', 'Entity deleted.');

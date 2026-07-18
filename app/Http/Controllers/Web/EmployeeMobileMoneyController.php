@@ -7,7 +7,6 @@ use App\Http\Requests\EmployeeMobileMoneyRequest;
 use App\Models\Employee;
 use App\Models\EmployeeMobileMoney;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Gate;
 
 class EmployeeMobileMoneyController extends Controller
 {
@@ -20,8 +19,6 @@ class EmployeeMobileMoneyController extends Controller
 
     public function destroy(Employee $employee, EmployeeMobileMoney $mobileMoney): RedirectResponse
     {
-        Gate::authorize('employees.update');
-
         $mobileMoney->delete();
 
         return redirect()->route('employees.show', $employee)->with('status', 'Mobile money account removed.');

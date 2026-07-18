@@ -44,6 +44,14 @@ test('viewing an employee sensitive fields writes a sensitive-field-viewed log e
         ->count())->toBe(3); // salary, identity-numbers, bank-details
 });
 
+test('a permission-denied route access writes an access-denied log entry', function () {
+    [, $employeeUser] = tenantWithRole('Employee');
+
+    $this->actingAs($employeeUser)->get(route('entities.index'))->assertForbidden();
+
+    expect(AuditLog::where('action', 'access_denied')->where('actor_id', $employeeUser->id)->exists())->toBeTrue();
+});
+
 test('assigning a role to a new user writes a role-assigned log entry', function () {
     [$tenant, $admin] = tenantWithRole('HR Admin');
 

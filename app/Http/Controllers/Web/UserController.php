@@ -11,15 +11,12 @@ use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class UserController extends Controller
 {
     public function index(Request $request): View
     {
-        Gate::authorize('users.manage');
-
         $users = User::where('tenant_id', $request->user()->tenant_id)->latest()->paginate(15);
 
         return view('users.index', ['users' => $users]);
@@ -27,8 +24,6 @@ class UserController extends Controller
 
     public function create(Request $request): View
     {
-        Gate::authorize('users.manage');
-
         return view('users.create', [
             'employees' => Employee::whereDoesntHave('user')->orderBy('first_name')->get(),
         ]);
@@ -43,7 +38,6 @@ class UserController extends Controller
 
     public function edit(Request $request, User $user): View
     {
-        Gate::authorize('users.manage');
         $this->ensureSameTenant($request, $user);
 
         return view('users.edit', [

@@ -8,7 +8,7 @@ class OvertimeApprovalRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('attendance.approve-overtime');
+        return true;
     }
 
     /**

@@ -7,14 +7,11 @@ use App\Http\Requests\PositionRequest;
 use App\Http\Resources\PositionResource;
 use App\Models\Position;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 
 class PositionController extends Controller
 {
     public function index(Request $request)
     {
-        Gate::authorize('org.view');
-
         return PositionResource::collection(Position::latest()->paginate(25));
     }
 
@@ -27,8 +24,6 @@ class PositionController extends Controller
 
     public function show(Position $position)
     {
-        Gate::authorize('org.view');
-
         return PositionResource::make($position);
     }
 
@@ -41,8 +36,6 @@ class PositionController extends Controller
 
     public function destroy(Position $position)
     {
-        Gate::authorize('org.manage');
-
         $position->delete();
 
         return response()->noContent();

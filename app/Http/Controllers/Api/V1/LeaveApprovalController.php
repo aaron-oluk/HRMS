@@ -10,14 +10,11 @@ use App\Http\Resources\LeaveRequestResource;
 use App\Models\LeaveRequest;
 use App\Support\Approvals\TeamScope;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 
 class LeaveApprovalController extends Controller
 {
     public function index(Request $request, TeamScope $teamScope)
     {
-        Gate::authorize('leave.approve');
-
         $query = LeaveRequest::with('employee', 'leaveType')->pending()->latest('start_date');
 
         return LeaveRequestResource::collection($teamScope->scopeToTeam($query, $request->user())->paginate(25));
@@ -25,8 +22,6 @@ class LeaveApprovalController extends Controller
 
     public function approve(Request $request, LeaveRequest $leaveRequest, ApproveLeaveRequest $approveLeaveRequest)
     {
-        Gate::authorize('leave.approve');
-
         return LeaveRequestResource::make($approveLeaveRequest->handle($leaveRequest, $request->user()));
     }
 

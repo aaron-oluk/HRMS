@@ -226,6 +226,7 @@ class DemoTenantSeeder extends Seeder
             ['email' => 'hr-specialist@aloflux-demo.test', 'name' => 'David Ssemwogerere', 'role' => 'HR Specialist'],
             ['email' => 'auditor@aloflux-demo.test', 'name' => 'Ruth Achieng', 'role' => 'Auditor'],
             ['email' => 'accountant@aloflux-demo.test', 'name' => 'Moses Tumwine', 'role' => 'Accountant'],
+            ['email' => 'executive@aloflux-demo.test', 'name' => 'Patrick Mugisha', 'role' => 'Executive'],
         ] as $demoUser) {
             $user = User::firstOrCreate(
                 ['email' => $demoUser['email']],
@@ -255,6 +256,19 @@ class DemoTenantSeeder extends Seeder
         );
 
         $reportEmployee = $teamMembers->first();
+
+        $employeeUser = User::firstOrCreate(
+            ['email' => 'employee@aloflux-demo.test'],
+            [
+                'tenant_id' => $tenant->id,
+                'employee_id' => $reportEmployee->id,
+                'name' => $reportEmployee->fullName(),
+                'password' => 'password',
+                'status' => 'active',
+            ]
+        );
+        $employeeUser->syncRoles([$roles['Employee']]);
+
         LeaveRequest::firstOrCreate(
             ['tenant_id' => $tenant->id, 'employee_id' => $reportEmployee->id, 'start_date' => now()->addDays(3)->toDateString()],
             [

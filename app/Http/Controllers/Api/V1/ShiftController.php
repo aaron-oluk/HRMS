@@ -7,14 +7,11 @@ use App\Http\Requests\ShiftRequest;
 use App\Http\Resources\ShiftResource;
 use App\Models\Shift;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 
 class ShiftController extends Controller
 {
     public function index(Request $request)
     {
-        Gate::authorize('org.view');
-
         return ShiftResource::collection(Shift::latest()->paginate(25));
     }
 
@@ -27,8 +24,6 @@ class ShiftController extends Controller
 
     public function show(Shift $shift)
     {
-        Gate::authorize('org.view');
-
         return ShiftResource::make($shift);
     }
 
@@ -41,8 +36,6 @@ class ShiftController extends Controller
 
     public function destroy(Shift $shift)
     {
-        Gate::authorize('attendance.manage-shifts');
-
         $shift->delete();
 
         return response()->noContent();

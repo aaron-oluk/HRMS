@@ -7,14 +7,11 @@ use App\Http\Requests\EmployeeMobileMoneyRequest;
 use App\Http\Resources\EmployeeMobileMoneyResource;
 use App\Models\Employee;
 use App\Models\EmployeeMobileMoney;
-use Illuminate\Support\Facades\Gate;
 
 class EmployeeMobileMoneyController extends Controller
 {
     public function index(Employee $employee)
     {
-        Gate::authorize('employees.view-bank-details');
-
         return EmployeeMobileMoneyResource::collection($employee->mobileMoneyAccounts()->get());
     }
 
@@ -34,8 +31,6 @@ class EmployeeMobileMoneyController extends Controller
 
     public function destroy(Employee $employee, EmployeeMobileMoney $mobileMoney)
     {
-        Gate::authorize('employees.update');
-
         $mobileMoney->delete();
 
         return response()->noContent();

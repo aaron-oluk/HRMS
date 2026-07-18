@@ -10,14 +10,11 @@ use App\Http\Resources\EmployeeResource;
 use App\Models\Employee;
 use App\Support\Audit\AccessAudit;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 
 class EmployeeController extends Controller
 {
     public function index(Request $request)
     {
-        Gate::authorize('employees.view');
-
         $employees = Employee::with('currentEmployment')->latest()->paginate(25);
 
         return EmployeeResource::collection($employees);
@@ -32,8 +29,6 @@ class EmployeeController extends Controller
 
     public function show(Request $request, Employee $employee)
     {
-        Gate::authorize('employees.view');
-
         $employee->load('currentEmployment');
 
         $viewer = $request->user();

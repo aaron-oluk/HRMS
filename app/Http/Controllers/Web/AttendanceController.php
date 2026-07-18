@@ -17,7 +17,6 @@ use App\Support\Approvals\TeamScope;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 
 class AttendanceController extends Controller
 {
@@ -86,8 +85,6 @@ class AttendanceController extends Controller
 
     public function approveOvertime(Request $request, OvertimeRequest $overtimeRequest, ApproveOvertimeRequest $approveOvertimeRequest): RedirectResponse
     {
-        Gate::authorize('attendance.approve-overtime');
-
         $approveOvertimeRequest->handle($overtimeRequest, $request->user());
 
         return redirect()->route('attendance.index')->with('status', 'Overtime approved.');

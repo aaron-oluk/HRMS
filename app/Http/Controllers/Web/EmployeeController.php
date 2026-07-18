@@ -11,14 +11,11 @@ use App\Models\Entity;
 use App\Support\Audit\AccessAudit;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Gate;
 
 class EmployeeController extends Controller
 {
     public function index(): View
     {
-        Gate::authorize('employees.view');
-
         $employees = Employee::with('currentEmployment.position', 'entity')->latest()->paginate(15);
 
         return view('employees.index', ['employees' => $employees]);
@@ -26,8 +23,6 @@ class EmployeeController extends Controller
 
     public function create(): View
     {
-        Gate::authorize('employees.create');
-
         return view('employees.create', ['entities' => Entity::orderBy('name')->get()]);
     }
 
@@ -40,8 +35,6 @@ class EmployeeController extends Controller
 
     public function show(Employee $employee): View
     {
-        Gate::authorize('employees.view');
-
         $employee->load([
             'entity',
             'employments' => fn ($query) => $query->with('department', 'position', 'grade', 'branch'),
@@ -66,8 +59,6 @@ class EmployeeController extends Controller
 
     public function edit(Employee $employee): View
     {
-        Gate::authorize('employees.update');
-
         return view('employees.edit', ['employee' => $employee, 'entities' => Entity::orderBy('name')->get()]);
     }
 

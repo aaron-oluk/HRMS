@@ -8,21 +8,16 @@ use App\Models\Department;
 use App\Models\Entity;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Gate;
 
 class DepartmentController extends Controller
 {
     public function index(): View
     {
-        Gate::authorize('org.view');
-
         return view('departments.index', ['departments' => Department::with('entity', 'parent')->latest()->paginate(15)]);
     }
 
     public function create(): View
     {
-        Gate::authorize('org.manage');
-
         return view('departments.create', [
             'entities' => Entity::orderBy('name')->get(),
             'departments' => Department::orderBy('name')->get(),
@@ -38,8 +33,6 @@ class DepartmentController extends Controller
 
     public function edit(Department $department): View
     {
-        Gate::authorize('org.manage');
-
         return view('departments.edit', [
             'department' => $department,
             'entities' => Entity::orderBy('name')->get(),
@@ -56,8 +49,6 @@ class DepartmentController extends Controller
 
     public function destroy(Department $department): RedirectResponse
     {
-        Gate::authorize('org.manage');
-
         $department->delete();
 
         return redirect()->route('departments.index')->with('status', 'Department deleted.');

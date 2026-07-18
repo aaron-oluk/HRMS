@@ -7,14 +7,11 @@ use App\Http\Requests\DepartmentRequest;
 use App\Http\Resources\DepartmentResource;
 use App\Models\Department;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 
 class DepartmentController extends Controller
 {
     public function index(Request $request)
     {
-        Gate::authorize('org.view');
-
         return DepartmentResource::collection(Department::latest()->paginate(25));
     }
 
@@ -27,8 +24,6 @@ class DepartmentController extends Controller
 
     public function show(Department $department)
     {
-        Gate::authorize('org.view');
-
         return DepartmentResource::make($department);
     }
 
@@ -41,8 +36,6 @@ class DepartmentController extends Controller
 
     public function destroy(Department $department)
     {
-        Gate::authorize('org.manage');
-
         $department->delete();
 
         return response()->noContent();

@@ -9,7 +9,7 @@ class ShiftRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('attendance.manage-shifts');
+        return true;
     }
 
     /**

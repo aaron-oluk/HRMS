@@ -7,14 +7,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\EmploymentRequest;
 use App\Http\Resources\EmploymentResource;
 use App\Models\Employee;
-use Illuminate\Support\Facades\Gate;
 
 class EmploymentController extends Controller
 {
     public function index(Employee $employee)
     {
-        Gate::authorize('employees.view');
-
         return EmploymentResource::collection($employee->employments()->paginate(25));
     }
 

@@ -12,14 +12,11 @@ use App\Models\Grade;
 use App\Models\Position;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Gate;
 
 class EmploymentController extends Controller
 {
     public function create(Employee $employee): View
     {
-        Gate::authorize('employments.manage');
-
         return view('employments.create', [
             'employee' => $employee,
             'entities' => Entity::orderBy('name')->get(),

@@ -10,7 +10,6 @@ use App\Http\Resources\AttendanceDayResource;
 use App\Models\AttendanceDay;
 use App\Support\Approvals\TeamScope;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 
 class AttendanceController extends Controller
 {
@@ -27,8 +26,6 @@ class AttendanceController extends Controller
 
     public function teamToday(Request $request, TeamScope $teamScope)
     {
-        Gate::authorize('attendance.view-team');
-
         $query = AttendanceDay::with('employee')->whereDate('date', now()->toDateString());
 
         return AttendanceDayResource::collection($teamScope->scopeToTeam($query, $request->user())->get());

@@ -15,7 +15,6 @@ use App\Support\Leave\LeaveBalance;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 
 class LeaveController extends Controller
 {
@@ -61,8 +60,6 @@ class LeaveController extends Controller
 
     public function approve(Request $request, LeaveRequest $leaveRequest, ApproveLeaveRequest $approveLeaveRequest): RedirectResponse
     {
-        Gate::authorize('leave.approve');
-
         $approveLeaveRequest->handle($leaveRequest, $request->user());
 
         return redirect()->route('leave.index')->with('status', 'Request approved.');
