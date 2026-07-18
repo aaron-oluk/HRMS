@@ -150,7 +150,7 @@ class DemoTenantSeeder extends Seeder
                 'status' => 'active',
             ]
         );
-        $manager->syncRoles([$roles['Manager']]);
+        $manager->syncRoles([$roles['Team Lead']]);
 
         $teamMembers = Employee::factory()
             ->count(6)
@@ -167,6 +167,72 @@ class DemoTenantSeeder extends Seeder
                     'reporting_to_employee_id' => $index < 2 ? $managerEmployee->id : null,
                 ]);
             });
+
+        $deptManagerEmployee = Employee::firstOrCreate(
+            ['tenant_id' => $tenant->id, 'employee_number' => 'EMP-00003'],
+            [
+                'entity_id' => $entity->id,
+                'first_name' => 'Sarah',
+                'last_name' => 'Nabirye',
+                'gender' => 'female',
+                'date_of_birth' => '1982-11-20',
+                'national_id_number' => 'CM82112000003',
+                'nssf_number' => 'NSSF-000003',
+                'phone' => '+256700000003',
+                'personal_email' => 'sarah.nabirye@example.com',
+                'nationality' => 'Ugandan',
+                'status' => 'active',
+            ]
+        );
+
+        Employment::firstOrCreate(
+            ['tenant_id' => $tenant->id, 'employee_id' => $deptManagerEmployee->id, 'effective_to' => null],
+            [
+                'entity_id' => $entity->id,
+                'department_id' => $departments['Finance']->id,
+                'position_id' => $positions['Payroll Officer']->id,
+                'grade_id' => $grade->id,
+                'basic_salary' => 3000000,
+                'effective_from' => now()->subYears(3)->toDateString(),
+                'status' => 'active',
+                'reason' => 'initial',
+            ]
+        );
+
+        $deptManager = User::firstOrCreate(
+            ['email' => 'dept-manager@aloflux-demo.test'],
+            [
+                'tenant_id' => $tenant->id,
+                'employee_id' => $deptManagerEmployee->id,
+                'name' => 'Sarah Nabirye',
+                'password' => 'password',
+                'status' => 'active',
+            ]
+        );
+        $deptManager->syncRoles([$roles['Department Manager']]);
+
+        $financeEmployee = Employee::factory()->for($entity)->create(['tenant_id' => $tenant->id]);
+        Employment::factory()->create([
+            'tenant_id' => $tenant->id,
+            'employee_id' => $financeEmployee->id,
+            'entity_id' => $entity->id,
+            'department_id' => $departments['Finance']->id,
+            'position_id' => $positions['Payroll Officer']->id,
+            'grade_id' => $grade->id,
+        ]);
+
+        foreach ([
+            ['email' => 'hr-manager@aloflux-demo.test', 'name' => 'Josephine Kobusingye', 'role' => 'HR Manager'],
+            ['email' => 'hr-specialist@aloflux-demo.test', 'name' => 'David Ssemwogerere', 'role' => 'HR Specialist'],
+            ['email' => 'auditor@aloflux-demo.test', 'name' => 'Ruth Achieng', 'role' => 'Auditor'],
+            ['email' => 'accountant@aloflux-demo.test', 'name' => 'Moses Tumwine', 'role' => 'Accountant'],
+        ] as $demoUser) {
+            $user = User::firstOrCreate(
+                ['email' => $demoUser['email']],
+                ['tenant_id' => $tenant->id, 'name' => $demoUser['name'], 'password' => 'password', 'status' => 'active']
+            );
+            $user->syncRoles([$roles[$demoUser['role']]]);
+        }
 
         $leaveTypes = collect([
             ['name' => 'Annual Leave', 'code' => 'ANNUAL', 'default_days_per_year' => 21, 'max_carry_forward_days' => 5],

@@ -12,7 +12,7 @@ class EmployeeResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $canViewSensitive = $request->user()?->can('employees.view-sensitive') ?? false;
+        $canViewIdentityNumbers = $request->user()?->can('employees.view-identity-numbers') ?? false;
 
         return [
             'id' => $this->id,
@@ -28,10 +28,10 @@ class EmployeeResource extends JsonResource
             'marital_status' => $this->marital_status,
             'nationality' => $this->nationality,
             'status' => $this->status,
-            'date_of_birth' => $this->when($canViewSensitive, $this->date_of_birth?->toDateString()),
-            'national_id_number' => $this->when($canViewSensitive, $this->national_id_number),
-            'nssf_number' => $this->when($canViewSensitive, $this->nssf_number),
-            'tin_number' => $this->when($canViewSensitive, $this->tin_number),
+            'date_of_birth' => $this->when($canViewIdentityNumbers, $this->date_of_birth?->toDateString()),
+            'national_id_number' => $this->when($canViewIdentityNumbers, $this->national_id_number),
+            'nssf_number' => $this->when($canViewIdentityNumbers, $this->nssf_number),
+            'tin_number' => $this->when($canViewIdentityNumbers, $this->tin_number),
             'current_employment' => EmploymentResource::make($this->whenLoaded('currentEmployment')),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

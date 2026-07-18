@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\EmployeeRequest;
 use App\Http\Resources\EmployeeResource;
 use App\Models\Employee;
+use App\Support\Audit\AccessAudit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
@@ -29,11 +30,22 @@ class EmployeeController extends Controller
         return EmployeeResource::make($employee)->response()->setStatusCode(201);
     }
 
-    public function show(Employee $employee)
+    public function show(Request $request, Employee $employee)
     {
         Gate::authorize('employees.view');
 
         $employee->load('currentEmployment');
+
+        $viewer = $request->user();
+        $visibleSensitiveFields = collect([
+            'salary' => 'employees.view-salary',
+            'identity-numbers' => 'employees.view-identity-numbers',
+            'bank-details' => 'employees.view-bank-details',
+        ])->filter(fn (string $permission) => $viewer->can($permission))->keys()->all();
+
+        if ($visibleSensitiveFields !== []) {
+            AccessAudit::sensitiveFieldViewed($employee, $viewer, $visibleSensitiveFields);
+        }
 
         return EmployeeResource::make($employee);
     }

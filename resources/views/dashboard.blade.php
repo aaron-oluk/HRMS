@@ -2,7 +2,7 @@
     $quickActions = collect([
         ['label' => 'Request time off', 'route' => 'leave.index', 'icon' => 'bx-calendar-plus', 'show' => $myLeaveBalance !== null],
         ['label' => 'Review approvals', 'route' => 'leave.index', 'icon' => 'bx-check-shield', 'show' => $pendingApprovalsCount !== null],
-        ['label' => 'Add employee', 'route' => 'employees.create', 'icon' => 'bx-user-plus', 'show' => auth()->user()->can('employees.manage')],
+        ['label' => 'Add employee', 'route' => 'employees.create', 'icon' => 'bx-user-plus', 'show' => auth()->user()->can('employees.create')],
         ['label' => 'Add user', 'route' => 'users.create', 'icon' => 'bx-user-circle', 'show' => auth()->user()->can('users.manage')],
     ])->filter(fn ($action) => $action['show']);
 

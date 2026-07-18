@@ -3,6 +3,7 @@
 namespace App\Actions\Users;
 
 use App\Models\User;
+use App\Support\Audit\AccessAudit;
 use Spatie\Permission\PermissionRegistrar;
 
 class UpdateUser
@@ -24,7 +25,12 @@ class UpdateUser
         $user->update($data);
 
         $this->permissionRegistrar->setPermissionsTeamId($user->tenant_id);
+        $previousRole = $user->getRoleNames()->first();
         $user->syncRoles([$role]);
+
+        if ($previousRole !== $role && ($actor = auth()->user())) {
+            AccessAudit::roleAssigned($actor, $user, $role);
+        }
 
         return $user;
     }

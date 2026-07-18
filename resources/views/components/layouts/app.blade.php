@@ -89,15 +89,24 @@
                 </x-nav-link>
             @endcan
 
-            @can('users.manage')
+            @canany(['users.manage', 'audit.view'])
                 <x-nav-section>Administration</x-nav-section>
-                <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')" icon="bx-user-circle">
-                    Users &amp; Roles
-                </x-nav-link>
-            @endcan
+                @can('users.manage')
+                    <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')" icon="bx-user-circle">
+                        Users &amp; Roles
+                    </x-nav-link>
+                @endcan
+                @can('audit.view')
+                    <x-nav-link :href="route('audit-logs.index')" :active="request()->routeIs('audit-logs.*')" icon="bx-history">
+                        Audit Log
+                    </x-nav-link>
+                @endcan
+            @endcanany
 
             @cannot('users.manage')
-                <x-nav-section>Account</x-nav-section>
+                @cannot('audit.view')
+                    <x-nav-section>Account</x-nav-section>
+                @endcannot
             @endcannot
             <x-nav-link :href="route('security.edit')" :active="request()->routeIs('security.*')" icon="bx-shield-quarter">
                 Security

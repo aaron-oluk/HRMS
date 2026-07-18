@@ -8,7 +8,7 @@ use App\Models\OvertimeRequest;
 test('a manager sees only their team\'s pending leave and overtime requests in the inbox', function () {
     [$tenant] = tenantWithRole('HR Admin');
     $entity = Entity::factory()->create(['tenant_id' => $tenant->id]);
-    [$managerEmployee, $managerUser] = employeeUser($tenant, $entity, 'Manager');
+    [$managerEmployee, $managerUser] = employeeUser($tenant, $entity, 'Team Lead');
     [$reportEmployee] = employeeUser($tenant, $entity, 'Employee', reportsTo: $managerEmployee);
     [$strangerEmployee] = employeeUser($tenant, $entity, 'Employee');
 

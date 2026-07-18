@@ -27,7 +27,7 @@ class AttendanceController extends Controller
 
     public function teamToday(Request $request, TeamScope $teamScope)
     {
-        Gate::authorize('employees.view');
+        Gate::authorize('attendance.view-team');
 
         $query = AttendanceDay::with('employee')->whereDate('date', now()->toDateString());
 

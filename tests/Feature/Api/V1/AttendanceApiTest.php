@@ -26,7 +26,7 @@ test('an employee can clock in and out through the api', function () {
 test('a manager sees only their team in the attendance-today endpoint', function () {
     [$tenant] = tenantWithRole('HR Admin');
     $entity = Entity::factory()->create(['tenant_id' => $tenant->id]);
-    [$managerEmployee, $managerUser] = employeeUser($tenant, $entity, 'Manager');
+    [$managerEmployee, $managerUser] = employeeUser($tenant, $entity, 'Team Lead');
     [$reportEmployee] = employeeUser($tenant, $entity, 'Employee', reportsTo: $managerEmployee);
     [$strangerEmployee] = employeeUser($tenant, $entity, 'Employee');
 
@@ -62,7 +62,7 @@ test('an employee can submit an overtime request through the api', function () {
 test('approving an overtime request through the api updates status and approver', function () {
     [$tenant] = tenantWithRole('HR Admin');
     $entity = Entity::factory()->create(['tenant_id' => $tenant->id]);
-    [$managerEmployee, $managerUser] = employeeUser($tenant, $entity, 'Manager');
+    [$managerEmployee, $managerUser] = employeeUser($tenant, $entity, 'Team Lead');
     [$reportEmployee] = employeeUser($tenant, $entity, 'Employee', reportsTo: $managerEmployee);
 
     $request = OvertimeRequest::factory()->create(['tenant_id' => $tenant->id, 'employee_id' => $reportEmployee->id, 'status' => 'pending']);

@@ -42,7 +42,7 @@ class AttendanceController extends Controller
             : collect();
 
         $teamToday = collect();
-        if ($request->user()->can('employees.view')) {
+        if ($request->user()->can('attendance.view-team')) {
             $query = AttendanceDay::with('employee')->whereDate('date', now()->toDateString());
             $teamToday = $teamScope->scopeToTeam($query, $request->user())->get();
         }

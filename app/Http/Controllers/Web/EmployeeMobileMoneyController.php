@@ -20,7 +20,7 @@ class EmployeeMobileMoneyController extends Controller
 
     public function destroy(Employee $employee, EmployeeMobileMoney $mobileMoney): RedirectResponse
     {
-        Gate::authorize('employees.manage');
+        Gate::authorize('employees.update');
 
         $mobileMoney->delete();
 

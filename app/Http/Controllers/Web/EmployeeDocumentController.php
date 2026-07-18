@@ -27,7 +27,7 @@ class EmployeeDocumentController extends Controller
 
     public function destroy(Employee $employee, EmployeeDocument $document): RedirectResponse
     {
-        Gate::authorize('employees.manage');
+        Gate::authorize('employees.manage-documents');
 
         $document->delete();
 

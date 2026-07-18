@@ -1,6 +1,6 @@
 <x-layouts.app title="Employees" header="Employees">
     <div class="mb-4 flex justify-end">
-        @can('employees.manage')
+        @can('employees.create')
             <a href="{{ route('employees.create') }}"><x-button icon="bx-plus">Add employee</x-button></a>
         @endcan
     </div>

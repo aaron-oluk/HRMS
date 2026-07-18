@@ -20,7 +20,7 @@ class EmployeeBankAccountController extends Controller
 
     public function destroy(Employee $employee, EmployeeBankAccount $bankAccount): RedirectResponse
     {
-        Gate::authorize('employees.manage');
+        Gate::authorize('employees.update');
 
         $bankAccount->delete();
 

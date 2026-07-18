@@ -4,7 +4,7 @@
             <i class="bx bx-id-card text-base"></i>
             {{ $employee->employee_number }} · {{ $employee->entity->name }}
         </p>
-        @can('employees.manage')
+        @can('employees.update')
             <a href="{{ route('employees.edit', $employee) }}"><x-button variant="secondary" icon="bx-edit-alt">Edit profile</x-button></a>
         @endcan
     </div>

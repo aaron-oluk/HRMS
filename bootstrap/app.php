@@ -2,6 +2,8 @@
 
 use App\Http\Middleware\AssignRequestId;
 use App\Http\Middleware\IdentifyTenant;
+use App\Support\Audit\AccessAudit;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -43,5 +45,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->report(function (AuthorizationException $e): void {
+            AccessAudit::accessDenied(request()->user(), $e->getMessage());
+        });
     })->create();

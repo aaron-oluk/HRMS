@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Web\AttendanceController;
+use App\Http\Controllers\Web\AuditLogController;
 use App\Http\Controllers\Web\BranchController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\DepartmentController;
@@ -27,6 +28,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/inbox', [InboxController::class, 'index'])->name('inbox.index');
 
     Route::get('/settings/security', [SecuritySettingsController::class, 'edit'])->name('security.edit');
+    Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
 
     Route::resource('entities', EntityController::class)->except('show');
     Route::resource('branches', BranchController::class)->except('show');

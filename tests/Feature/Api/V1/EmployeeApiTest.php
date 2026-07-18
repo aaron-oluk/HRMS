@@ -22,7 +22,7 @@ test('an authenticated tenant user can list their employees', function () {
 });
 
 test('a manager cannot see sensitive fields through the api', function () {
-    [$tenant, $manager] = tenantWithRole('Manager');
+    [$tenant, $manager] = tenantWithRole('Team Lead');
     $entity = Entity::factory()->create(['tenant_id' => $tenant->id]);
     $employee = Employee::factory()->for($entity)->create([
         'tenant_id' => $tenant->id,

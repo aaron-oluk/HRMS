@@ -1,4 +1,4 @@
-@can('employees.view-sensitive')
+@can('employees.view-bank-details')
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div class="space-y-4">
             <x-card class="!p-0 overflow-x-auto">
@@ -12,7 +12,7 @@
                                     <p class="text-slate-500">{{ $account->account_name }} · {{ $account->account_number }}</p>
                                 </td>
                                 <td class="px-4 py-3 text-right">
-                                    @can('employees.manage')
+                                    @can('employees.update')
                                         <form method="POST" action="{{ route('employees.bank-accounts.destroy', [$employee, $account]) }}" onsubmit="return confirm('Remove this account?')">
                                             @csrf
                                             @method('DELETE')
@@ -28,7 +28,7 @@
                 </table>
             </x-card>
 
-            @can('employees.manage')
+            @can('employees.update')
                 <x-card>
                     <h3 class="text-sm font-semibold text-slate-900">Add bank account</h3>
                     <form method="POST" action="{{ route('employees.bank-accounts.store', $employee) }}" class="mt-4 space-y-4">
@@ -63,7 +63,7 @@
                                     <p class="text-slate-500">{{ $momo->account_name }} · {{ $momo->phone_number }}</p>
                                 </td>
                                 <td class="px-4 py-3 text-right">
-                                    @can('employees.manage')
+                                    @can('employees.update')
                                         <form method="POST" action="{{ route('employees.mobile-money.destroy', [$employee, $momo]) }}" onsubmit="return confirm('Remove this account?')">
                                             @csrf
                                             @method('DELETE')
@@ -79,7 +79,7 @@
                 </table>
             </x-card>
 
-            @can('employees.manage')
+            @can('employees.update')
                 <x-card>
                     <h3 class="text-sm font-semibold text-slate-900">Add mobile money account</h3>
                     <form method="POST" action="{{ route('employees.mobile-money.store', $employee) }}" class="mt-4 space-y-4">

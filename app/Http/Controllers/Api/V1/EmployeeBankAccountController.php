@@ -13,7 +13,7 @@ class EmployeeBankAccountController extends Controller
 {
     public function index(Employee $employee)
     {
-        Gate::authorize('employees.view-sensitive');
+        Gate::authorize('employees.view-bank-details');
 
         return EmployeeBankAccountResource::collection($employee->bankAccounts()->get());
     }
@@ -34,7 +34,7 @@ class EmployeeBankAccountController extends Controller
 
     public function destroy(Employee $employee, EmployeeBankAccount $bankAccount)
     {
-        Gate::authorize('employees.manage');
+        Gate::authorize('employees.update');
 
         $bankAccount->delete();
 

@@ -13,7 +13,7 @@ class EmployeeDocumentController extends Controller
 {
     public function index(Employee $employee)
     {
-        Gate::authorize('employees.view');
+        Gate::authorize('employees.view-documents');
 
         return EmployeeDocumentResource::collection($employee->documents()->latest()->paginate(25));
     }
@@ -34,7 +34,7 @@ class EmployeeDocumentController extends Controller
 
     public function destroy(Employee $employee, EmployeeDocument $document)
     {
-        Gate::authorize('employees.manage');
+        Gate::authorize('employees.manage-documents');
 
         $document->delete();
 

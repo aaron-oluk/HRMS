@@ -6,7 +6,7 @@ use App\Models\OvertimeRequest;
 test('a manager can approve their direct report\'s overtime request', function () {
     [$tenant] = tenantWithRole('HR Admin');
     $entity = Entity::factory()->create(['tenant_id' => $tenant->id]);
-    [$managerEmployee, $managerUser] = employeeUser($tenant, $entity, 'Manager');
+    [$managerEmployee, $managerUser] = employeeUser($tenant, $entity, 'Team Lead');
     [$reportEmployee] = employeeUser($tenant, $entity, 'Employee', reportsTo: $managerEmployee);
 
     $request = OvertimeRequest::factory()->create(['tenant_id' => $tenant->id, 'employee_id' => $reportEmployee->id, 'status' => 'pending']);
@@ -21,7 +21,7 @@ test('a manager can approve their direct report\'s overtime request', function (
 test('a manager cannot approve an overtime request from outside their team', function () {
     [$tenant] = tenantWithRole('HR Admin');
     $entity = Entity::factory()->create(['tenant_id' => $tenant->id]);
-    [, $managerUser] = employeeUser($tenant, $entity, 'Manager');
+    [, $managerUser] = employeeUser($tenant, $entity, 'Team Lead');
     [$strangerEmployee] = employeeUser($tenant, $entity, 'Employee');
 
     $request = OvertimeRequest::factory()->create(['tenant_id' => $tenant->id, 'employee_id' => $strangerEmployee->id, 'status' => 'pending']);
@@ -56,7 +56,7 @@ test('an employee without attendance.approve-overtime permission cannot approve 
 test('rejecting an overtime request records the reason', function () {
     [$tenant] = tenantWithRole('HR Admin');
     $entity = Entity::factory()->create(['tenant_id' => $tenant->id]);
-    [$managerEmployee, $managerUser] = employeeUser($tenant, $entity, 'Manager');
+    [$managerEmployee, $managerUser] = employeeUser($tenant, $entity, 'Team Lead');
     [$reportEmployee] = employeeUser($tenant, $entity, 'Employee', reportsTo: $managerEmployee);
 
     $request = OvertimeRequest::factory()->create(['tenant_id' => $tenant->id, 'employee_id' => $reportEmployee->id, 'status' => 'pending']);

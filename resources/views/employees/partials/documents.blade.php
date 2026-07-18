@@ -17,7 +17,7 @@
                             <td class="px-4 py-3 text-slate-500">{{ ucfirst(str_replace('_', ' ', $document->type)) }}</td>
                             <td class="px-4 py-3 text-slate-500">{{ $document->created_at->toDateString() }}</td>
                             <td class="px-4 py-3 text-right">
-                                @can('employees.manage')
+                                @can('employees.manage-documents')
                                     <form method="POST" action="{{ route('employees.documents.destroy', [$employee, $document]) }}" onsubmit="return confirm('Delete this document?')">
                                         @csrf
                                         @method('DELETE')
@@ -36,7 +36,7 @@
         </x-card>
     </div>
 
-    @can('employees.manage')
+    @can('employees.manage-documents')
         <x-card>
             <h3 class="text-sm font-semibold text-slate-900">Upload document</h3>
             <form method="POST" action="{{ route('employees.documents.store', $employee) }}" enctype="multipart/form-data" class="mt-4 space-y-4">

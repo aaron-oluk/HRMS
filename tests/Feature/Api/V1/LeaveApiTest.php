@@ -29,7 +29,7 @@ test('an employee can submit a leave request through the api', function () {
 test('a manager sees only their team\'s pending requests in the approvals queue', function () {
     [$tenant] = tenantWithRole('HR Admin');
     $entity = Entity::factory()->create(['tenant_id' => $tenant->id]);
-    [$managerEmployee, $managerUser] = employeeUser($tenant, $entity, 'Manager');
+    [$managerEmployee, $managerUser] = employeeUser($tenant, $entity, 'Team Lead');
     [$reportEmployee] = employeeUser($tenant, $entity, 'Employee', reportsTo: $managerEmployee);
     [$strangerEmployee] = employeeUser($tenant, $entity, 'Employee');
 
@@ -59,7 +59,7 @@ test('a manager sees only their team\'s pending requests in the approvals queue'
 test('approving through the api updates status and approver', function () {
     [$tenant] = tenantWithRole('HR Admin');
     $entity = Entity::factory()->create(['tenant_id' => $tenant->id]);
-    [$managerEmployee, $managerUser] = employeeUser($tenant, $entity, 'Manager');
+    [$managerEmployee, $managerUser] = employeeUser($tenant, $entity, 'Team Lead');
     [$reportEmployee] = employeeUser($tenant, $entity, 'Employee', reportsTo: $managerEmployee);
 
     $leaveType = LeaveType::factory()->create(['tenant_id' => $tenant->id, 'entity_id' => $entity->id]);

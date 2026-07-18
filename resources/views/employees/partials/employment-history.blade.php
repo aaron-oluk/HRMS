@@ -14,7 +14,7 @@
                 <th class="px-4 py-3 text-left font-medium text-slate-500">Effective to</th>
                 <th class="px-4 py-3 text-left font-medium text-slate-500">Position</th>
                 <th class="px-4 py-3 text-left font-medium text-slate-500">Department</th>
-                @can('employees.view-sensitive')
+                @can('employees.view-salary')
                     <th class="px-4 py-3 text-left font-medium text-slate-500">Salary</th>
                 @endcan
                 <th class="px-4 py-3 text-left font-medium text-slate-500">Reason</th>
@@ -28,7 +28,7 @@
                     <td class="px-4 py-3 text-slate-500">{{ $employment->effective_to?->toDateString() ?? 'Current' }}</td>
                     <td class="px-4 py-3 text-slate-900">{{ $employment->position->title }}</td>
                     <td class="px-4 py-3 text-slate-500">{{ $employment->department->name }}</td>
-                    @can('employees.view-sensitive')
+                    @can('employees.view-salary')
                         <td class="px-4 py-3 text-slate-500">{{ number_format($employment->basic_salary) }} {{ $employment->currency }}</td>
                     @endcan
                     <td class="px-4 py-3 text-slate-500">{{ ucfirst(str_replace('_', ' ', $employment->reason)) }}</td>

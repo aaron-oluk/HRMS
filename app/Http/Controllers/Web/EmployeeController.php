@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\EmployeeRequest;
 use App\Models\Employee;
 use App\Models\Entity;
+use App\Support\Audit\AccessAudit;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
@@ -25,7 +26,7 @@ class EmployeeController extends Controller
 
     public function create(): View
     {
-        Gate::authorize('employees.manage');
+        Gate::authorize('employees.create');
 
         return view('employees.create', ['entities' => Entity::orderBy('name')->get()]);
     }
@@ -49,12 +50,23 @@ class EmployeeController extends Controller
             'mobileMoneyAccounts',
         ]);
 
+        $viewer = auth()->user();
+        $visibleSensitiveFields = collect([
+            'salary' => 'employees.view-salary',
+            'identity-numbers' => 'employees.view-identity-numbers',
+            'bank-details' => 'employees.view-bank-details',
+        ])->filter(fn (string $permission) => $viewer->can($permission))->keys()->all();
+
+        if ($visibleSensitiveFields !== []) {
+            AccessAudit::sensitiveFieldViewed($employee, $viewer, $visibleSensitiveFields);
+        }
+
         return view('employees.show', ['employee' => $employee]);
     }
 
     public function edit(Employee $employee): View
     {
-        Gate::authorize('employees.manage');
+        Gate::authorize('employees.update');
 
         return view('employees.edit', ['employee' => $employee, 'entities' => Entity::orderBy('name')->get()]);
     }

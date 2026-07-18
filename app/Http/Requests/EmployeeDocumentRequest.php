@@ -8,7 +8,7 @@ class EmployeeDocumentRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('employees.manage');
+        return $this->user()->can('employees.manage-documents');
     }
 
     /**

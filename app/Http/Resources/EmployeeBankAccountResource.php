@@ -12,7 +12,7 @@ class EmployeeBankAccountResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $canViewSensitive = $request->user()?->can('employees.view-sensitive') ?? false;
+        $canViewBankDetails = $request->user()?->can('employees.view-bank-details') ?? false;
 
         return [
             'id' => $this->id,
@@ -20,7 +20,7 @@ class EmployeeBankAccountResource extends JsonResource
             'bank_name' => $this->bank_name,
             'branch_name' => $this->branch_name,
             'account_name' => $this->account_name,
-            'account_number' => $this->when($canViewSensitive, $this->account_number),
+            'account_number' => $this->when($canViewBankDetails, $this->account_number),
             'is_primary' => $this->is_primary,
             'created_at' => $this->created_at,
         ];

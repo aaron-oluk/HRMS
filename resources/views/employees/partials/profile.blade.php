@@ -25,7 +25,7 @@
             <dd class="mt-1 text-sm text-slate-900">{{ ucfirst(str_replace('_', ' ', $employee->status)) }}</dd>
         </div>
 
-        @can('employees.view-sensitive')
+        @can('employees.view-identity-numbers')
             <div>
                 <dt class="text-xs font-medium uppercase text-slate-500">Date of birth</dt>
                 <dd class="mt-1 text-sm text-slate-900">{{ $employee->date_of_birth?->toFormattedDateString() ?? '—' }}</dd>

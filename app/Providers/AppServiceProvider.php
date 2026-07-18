@@ -4,8 +4,15 @@ namespace App\Providers;
 
 use App\Models\LeaveRequest;
 use App\Models\OvertimeRequest;
+use App\Models\User;
 use App\Support\Approvals\TeamScope;
+use App\Support\Audit\AccessAudit;
+use Illuminate\Auth\Events\Failed;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Logout;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -24,6 +31,22 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::before(fn (User $user, string $ability) => $user->is_super_admin ? true : null);
+
+        Event::listen(Login::class, function (Login $event): void {
+            AccessAudit::loginSucceeded($event->user);
+        });
+
+        Event::listen(Failed::class, function (Failed $event): void {
+            AccessAudit::loginFailed($event->user, (string) ($event->credentials['email'] ?? ''));
+        });
+
+        Event::listen(Logout::class, function (Logout $event): void {
+            if ($event->user) {
+                AccessAudit::loggedOut($event->user);
+            }
+        });
+
         View::composer('components.layouts.app', function ($view): void {
             $user = Auth::user();
 

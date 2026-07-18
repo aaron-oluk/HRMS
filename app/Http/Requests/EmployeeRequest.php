@@ -9,7 +9,9 @@ class EmployeeRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('employees.manage');
+        return $this->route('employee')
+            ? $this->user()->can('employees.update')
+            : $this->user()->can('employees.create');
     }
 
     /**

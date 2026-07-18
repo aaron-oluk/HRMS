@@ -12,7 +12,7 @@ class EmploymentResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $canViewSensitive = $request->user()?->can('employees.view-sensitive') ?? false;
+        $canViewSalary = $request->user()?->can('employees.view-salary') ?? false;
 
         return [
             'id' => $this->id,
@@ -24,7 +24,7 @@ class EmploymentResource extends JsonResource
             'grade_id' => $this->grade_id,
             'reporting_to_employee_id' => $this->reporting_to_employee_id,
             'employment_type' => $this->employment_type,
-            'basic_salary' => $this->when($canViewSensitive, $this->basic_salary),
+            'basic_salary' => $this->when($canViewSalary, $this->basic_salary),
             'currency' => $this->currency,
             'effective_from' => $this->effective_from?->toDateString(),
             'effective_to' => $this->effective_to?->toDateString(),

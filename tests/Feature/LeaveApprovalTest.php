@@ -23,7 +23,7 @@ function submitPendingLeave(Tenant $tenant, Employee $employee, LeaveType $leave
 test('a manager can approve their direct report\'s leave request', function () {
     [$tenant] = tenantWithRole('HR Admin');
     $entity = Entity::factory()->create(['tenant_id' => $tenant->id]);
-    [$managerEmployee, $managerUser] = employeeUser($tenant, $entity, 'Manager');
+    [$managerEmployee, $managerUser] = employeeUser($tenant, $entity, 'Team Lead');
     [$reportEmployee] = employeeUser($tenant, $entity, 'Employee', reportsTo: $managerEmployee);
 
     $leaveType = LeaveType::factory()->create(['tenant_id' => $tenant->id, 'entity_id' => $entity->id]);
@@ -39,7 +39,7 @@ test('a manager can approve their direct report\'s leave request', function () {
 test('a manager cannot approve a request from outside their team', function () {
     [$tenant] = tenantWithRole('HR Admin');
     $entity = Entity::factory()->create(['tenant_id' => $tenant->id]);
-    [$managerEmployee, $managerUser] = employeeUser($tenant, $entity, 'Manager');
+    [$managerEmployee, $managerUser] = employeeUser($tenant, $entity, 'Team Lead');
     [$strangerEmployee] = employeeUser($tenant, $entity, 'Employee'); // no reportsTo
 
     $leaveType = LeaveType::factory()->create(['tenant_id' => $tenant->id, 'entity_id' => $entity->id]);
@@ -77,7 +77,7 @@ test('an employee without leave.approve permission cannot approve requests', fun
 test('approving a request reduces the computed available balance', function () {
     [$tenant] = tenantWithRole('HR Admin');
     $entity = Entity::factory()->create(['tenant_id' => $tenant->id]);
-    [$managerEmployee, $managerUser] = employeeUser($tenant, $entity, 'Manager');
+    [$managerEmployee, $managerUser] = employeeUser($tenant, $entity, 'Team Lead');
     [$reportEmployee] = employeeUser($tenant, $entity, 'Employee', reportsTo: $managerEmployee);
 
     $leaveType = LeaveType::factory()->create(['tenant_id' => $tenant->id, 'entity_id' => $entity->id, 'default_days_per_year' => 10]);
@@ -94,7 +94,7 @@ test('approving a request reduces the computed available balance', function () {
 test('a rejected request does not affect the balance', function () {
     [$tenant] = tenantWithRole('HR Admin');
     $entity = Entity::factory()->create(['tenant_id' => $tenant->id]);
-    [$managerEmployee, $managerUser] = employeeUser($tenant, $entity, 'Manager');
+    [$managerEmployee, $managerUser] = employeeUser($tenant, $entity, 'Team Lead');
     [$reportEmployee] = employeeUser($tenant, $entity, 'Employee', reportsTo: $managerEmployee);
 
     $leaveType = LeaveType::factory()->create(['tenant_id' => $tenant->id, 'entity_id' => $entity->id, 'default_days_per_year' => 10]);

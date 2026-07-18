@@ -5,7 +5,7 @@ use App\Models\Employment;
 use App\Models\Entity;
 
 test('a manager cannot see salary or national id fields on an employee profile', function () {
-    [$tenant, $manager] = tenantWithRole('Manager');
+    [$tenant, $manager] = tenantWithRole('Team Lead');
 
     $entity = Entity::factory()->create(['tenant_id' => $tenant->id]);
     $employee = Employee::factory()->for($entity)->create([
@@ -49,7 +49,7 @@ test('an hr admin can see salary and national id fields on an employee profile',
 });
 
 test('a manager cannot manage org structure', function () {
-    [$tenant, $manager] = tenantWithRole('Manager');
+    [$tenant, $manager] = tenantWithRole('Team Lead');
 
     $this->actingAs($manager)
         ->get(route('entities.create'))

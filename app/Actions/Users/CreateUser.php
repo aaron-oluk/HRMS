@@ -4,6 +4,7 @@ namespace App\Actions\Users;
 
 use App\Models\Tenant;
 use App\Models\User;
+use App\Support\Audit\AccessAudit;
 use Spatie\Permission\PermissionRegistrar;
 
 class CreateUser
@@ -25,6 +26,10 @@ class CreateUser
 
         $this->permissionRegistrar->setPermissionsTeamId($tenant->id);
         $user->assignRole($role);
+
+        if ($actor = auth()->user()) {
+            AccessAudit::roleAssigned($actor, $user, $role);
+        }
 
         return $user;
     }

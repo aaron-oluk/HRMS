@@ -12,7 +12,7 @@ class EmployeeMobileMoneyResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $canViewSensitive = $request->user()?->can('employees.view-sensitive') ?? false;
+        $canViewBankDetails = $request->user()?->can('employees.view-bank-details') ?? false;
 
         return [
             'id' => $this->id,
