@@ -3,7 +3,7 @@
 @php
     $variants = [
         'primary' => 'bg-emerald-600 text-white shadow-sm hover:bg-emerald-500 focus-visible:outline-emerald-600',
-        'secondary' => 'bg-white text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 hover:text-slate-900',
+        'secondary' => 'bg-white text-slate-700 shadow-sm hover:bg-slate-50 hover:text-slate-900',
         'danger' => 'bg-red-600 text-white shadow-sm hover:bg-red-500 focus-visible:outline-red-600',
     ];
 @endphp

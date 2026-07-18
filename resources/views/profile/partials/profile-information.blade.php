@@ -21,7 +21,7 @@
     };
 @endphp
 
-<div class="grid grid-cols-2 gap-4">
+<div class="grid grid-cols-2 gap-6">
     <x-card>
         <div class="mb-6 flex items-center gap-x-4 border-b border-slate-100 pb-5">
             <x-avatar :name="auth()->user()->name" size="lg" />
