@@ -53,7 +53,8 @@ class SubmitLeaveRequest
     protected function countLeaveDays(Employee $employee, Carbon $start, Carbon $end): int
     {
         $holidays = Holiday::where('entity_id', $employee->entity_id)
-            ->whereBetween('date', [$start->toDateString(), $end->toDateString()])
+            ->whereDate('date', '>=', $start->toDateString())
+            ->whereDate('date', '<=', $end->toDateString())
             ->pluck('date')
             ->map(fn ($date) => $date->toDateString())
             ->all();

@@ -17,7 +17,8 @@ class AttendanceController extends Controller
     public function myTimesheet(Request $request)
     {
         $days = $request->user()->employee->attendanceDays()
-            ->whereBetween('date', [now()->startOfWeek()->toDateString(), now()->endOfWeek()->toDateString()])
+            ->whereDate('date', '>=', now()->startOfWeek()->toDateString())
+            ->whereDate('date', '<=', now()->endOfWeek()->toDateString())
             ->orderBy('date')
             ->get();
 
@@ -28,7 +29,7 @@ class AttendanceController extends Controller
     {
         Gate::authorize('employees.view');
 
-        $query = AttendanceDay::with('employee')->where('date', now()->toDateString());
+        $query = AttendanceDay::with('employee')->whereDate('date', now()->toDateString());
 
         return AttendanceDayResource::collection($teamScope->scopeToTeam($query, $request->user())->get());
     }

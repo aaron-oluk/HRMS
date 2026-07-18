@@ -23,8 +23,8 @@
                     <tr>
                         <td class="px-4 py-3 font-medium text-slate-900">{{ $shift->name }}</td>
                         <td class="px-4 py-3 text-slate-500">{{ $shift->entity->name }}</td>
-                        <td class="px-4 py-3 text-slate-500">{{ $shift->start_time }}</td>
-                        <td class="px-4 py-3 text-slate-500">{{ $shift->end_time }}</td>
+                        <td class="px-4 py-3 text-slate-500">{{ $shift->formattedStartTime() }}</td>
+                        <td class="px-4 py-3 text-slate-500">{{ $shift->formattedEndTime() }}</td>
                         <td class="px-4 py-3 text-slate-500">{{ $shift->break_minutes }}</td>
                         <td class="px-4 py-3 text-slate-500">{{ ucfirst($shift->status) }}</td>
                         <td class="px-4 py-3 text-right">

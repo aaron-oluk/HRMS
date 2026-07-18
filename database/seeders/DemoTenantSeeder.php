@@ -2,7 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Actions\Attendance\RecomputeAttendanceDay;
 use App\Actions\Tenancy\ProvisionDefaultRoles;
+use App\Models\ClockEvent;
 use App\Models\Department;
 use App\Models\Employee;
 use App\Models\Employment;
@@ -10,7 +12,9 @@ use App\Models\Entity;
 use App\Models\Grade;
 use App\Models\LeaveRequest;
 use App\Models\LeaveType;
+use App\Models\OvertimeRequest;
 use App\Models\Position;
+use App\Models\Shift;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Support\Tenancy\TenantContext;
@@ -194,6 +198,38 @@ class DemoTenantSeeder extends Seeder
                 'reason' => 'Doctor appointment',
                 'status' => 'pending',
             ]
+        );
+
+        $shift = Shift::firstOrCreate(
+            ['tenant_id' => $tenant->id, 'entity_id' => $entity->id, 'name' => 'Day Shift'],
+            ['start_time' => '08:00', 'end_time' => '17:00', 'break_minutes' => 60]
+        );
+
+        $recomputeAttendanceDay = app(RecomputeAttendanceDay::class);
+        foreach ([$hrAdminEmployee, $managerEmployee, $reportEmployee] as $employee) {
+            for ($daysAgo = 4; $daysAgo >= 1; $daysAgo--) {
+                $date = now()->subDays($daysAgo);
+                if ($date->isWeekend()) {
+                    continue;
+                }
+
+                $clockIn = $date->copy()->setTime(8, fake()->numberBetween(0, 20));
+                $clockOut = $date->copy()->setTime(17, fake()->numberBetween(0, 15));
+
+                ClockEvent::firstOrCreate(
+                    ['tenant_id' => $tenant->id, 'employee_id' => $employee->id, 'type' => 'clock_in', 'occurred_at' => $clockIn]
+                );
+                ClockEvent::firstOrCreate(
+                    ['tenant_id' => $tenant->id, 'employee_id' => $employee->id, 'type' => 'clock_out', 'occurred_at' => $clockOut]
+                );
+
+                $recomputeAttendanceDay->handle($employee, $date);
+            }
+        }
+
+        OvertimeRequest::firstOrCreate(
+            ['tenant_id' => $tenant->id, 'employee_id' => $reportEmployee->id, 'date' => now()->subDay()->toDateString()],
+            ['hours' => 2.5, 'reason' => 'Production incident', 'status' => 'pending']
         );
     }
 }

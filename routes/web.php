@@ -11,6 +11,7 @@ use App\Http\Controllers\Web\EmployeeMobileMoneyController;
 use App\Http\Controllers\Web\EmploymentController;
 use App\Http\Controllers\Web\EntityController;
 use App\Http\Controllers\Web\GradeController;
+use App\Http\Controllers\Web\InboxController;
 use App\Http\Controllers\Web\LeaveController;
 use App\Http\Controllers\Web\LeaveTypeController;
 use App\Http\Controllers\Web\PositionController;
@@ -23,6 +24,7 @@ Route::get('/', fn () => redirect()->route('dashboard'));
 
 Route::middleware('auth')->group(function (): void {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+    Route::get('/inbox', [InboxController::class, 'index'])->name('inbox.index');
 
     Route::get('/settings/security', [SecuritySettingsController::class, 'edit'])->name('security.edit');
 

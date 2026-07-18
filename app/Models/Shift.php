@@ -38,11 +38,11 @@ class Shift extends Model
 
     public function formattedStartTime(): string
     {
-        return \Illuminate\Support\Carbon::parse($this->start_time)->format('H:i');
+        return Carbon::parse($this->start_time)->format('H:i');
     }
 
     public function formattedEndTime(): string
     {
-        return \Illuminate\Support\Carbon::parse($this->end_time)->format('H:i');
+        return Carbon::parse($this->end_time)->format('H:i');
     }
 }

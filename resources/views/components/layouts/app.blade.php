@@ -33,6 +33,14 @@
                 Dashboard
             </x-nav-link>
 
+            @php($totalInboxCount = $pendingLeaveApprovalsCount + $pendingOvertimeApprovalsCount)
+            <x-nav-link :href="route('inbox.index')" :active="request()->routeIs('inbox.index')" icon="bxs-inbox">
+                Inbox
+                @if ($totalInboxCount > 0)
+                    <span class="ml-auto rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-indigo-800">{{ $totalInboxCount }}</span>
+                @endif
+            </x-nav-link>
+
             @can('employees.view')
                 <x-nav-section>People</x-nav-section>
                 <x-nav-link :href="route('employees.index')" :active="request()->routeIs('employees.*')" icon="bx-group">
@@ -46,6 +54,13 @@
                 Time Off
                 @if ($pendingLeaveApprovalsCount > 0)
                     <span class="ml-auto rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-indigo-800">{{ $pendingLeaveApprovalsCount }}</span>
+                @endif
+            </x-nav-link>
+
+            <x-nav-link :href="route('attendance.index')" :active="request()->routeIs('attendance.index')" icon="bx-time-five">
+                Attendance
+                @if ($pendingOvertimeApprovalsCount > 0)
+                    <span class="ml-auto rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-indigo-800">{{ $pendingOvertimeApprovalsCount }}</span>
                 @endif
             </x-nav-link>
 
@@ -68,6 +83,9 @@
                 </x-nav-link>
                 <x-nav-link :href="route('leave-types.index')" :active="request()->routeIs('leave-types.*')" icon="bx-calendar-star">
                     Leave Types
+                </x-nav-link>
+                <x-nav-link :href="route('shifts.index')" :active="request()->routeIs('shifts.*')" icon="bx-alarm">
+                    Shifts
                 </x-nav-link>
             @endcan
 

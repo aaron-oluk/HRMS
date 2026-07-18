@@ -53,8 +53,8 @@ class DashboardController extends Controller
         }
 
         return LeaveRequest::approved()
-            ->where('start_date', '<=', now()->toDateString())
-            ->where('end_date', '>=', now()->toDateString())
+            ->whereDate('start_date', '<=', now()->toDateString())
+            ->whereDate('end_date', '>=', now()->toDateString())
             ->count();
     }
 
@@ -121,7 +121,7 @@ class DashboardController extends Controller
 
         return LeaveRequest::with('employee', 'leaveType')
             ->approved()
-            ->where('start_date', '>=', now()->toDateString())
+            ->whereDate('start_date', '>=', now()->toDateString())
             ->orderBy('start_date')
             ->limit(5)
             ->get();

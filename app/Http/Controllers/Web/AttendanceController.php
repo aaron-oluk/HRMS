@@ -27,7 +27,8 @@ class AttendanceController extends Controller
 
         $myTimesheet = $employee
             ? $employee->attendanceDays()
-                ->whereBetween('date', [now()->startOfWeek()->toDateString(), now()->endOfWeek()->toDateString()])
+                ->whereDate('date', '>=', now()->startOfWeek()->toDateString())
+                ->whereDate('date', '<=', now()->endOfWeek()->toDateString())
                 ->orderBy('date')
                 ->get()
             : collect();
@@ -42,7 +43,7 @@ class AttendanceController extends Controller
 
         $teamToday = collect();
         if ($request->user()->can('employees.view')) {
-            $query = AttendanceDay::with('employee')->where('date', now()->toDateString());
+            $query = AttendanceDay::with('employee')->whereDate('date', now()->toDateString());
             $teamToday = $teamScope->scopeToTeam($query, $request->user())->get();
         }
 
