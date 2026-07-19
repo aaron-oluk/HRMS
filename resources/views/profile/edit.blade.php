@@ -1,5 +1,5 @@
 <x-layouts.app title="My Profile" header="My Profile">
-    <div x-data="{ tab: 'profile' }" class="max-w-3xl">
+    <div x-data="{ tab: 'profile' }">
         <div class="border-b border-slate-200">
             <nav class="-mb-px flex gap-x-6">
                 <button type="button" @click="tab = 'profile'" :class="tab === 'profile' ? 'border-emerald-600 text-emerald-600' : 'border-transparent text-slate-500 hover:text-slate-700'" class="flex items-center gap-x-1.5 border-b-2 px-1 py-3 text-sm font-medium">

@@ -11,14 +11,22 @@ use App\Support\Approvals\TeamScope;
 use App\Support\Leave\LeaveBalance;
 use Carbon\CarbonPeriod;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 
 class DashboardController extends Controller
 {
-    public function __invoke(Request $request, LeaveBalance $leaveBalance, TeamScope $teamScope): View
+    public function __invoke(Request $request, LeaveBalance $leaveBalance, TeamScope $teamScope): View|RedirectResponse
     {
         $user = $request->user();
+
+        // A super admin has no tenant of their own — send them to the platform admin
+        // console instead of an empty tenant dashboard.
+        if ($user->is_super_admin) {
+            return redirect()->route('admin.tenants.index');
+        }
+
         $tenant = $user->tenant;
         $employee = $user->employee;
 
@@ -127,7 +135,12 @@ class DashboardController extends Controller
 
         $employeeScope = fn ($query) => $companyWide ? $query : $query->where('employee_id', $employee->id);
 
-        $employeeScope(Employee::query())->latest()->limit(5)->get()->each(
+        // Employee's own primary key column is "id", not "employee_id" (that column only
+        // exists on tables that reference an employee, like leave_requests below), so this
+        // query is scoped separately rather than through the generic closure above.
+        $employeeQuery = $companyWide ? Employee::query() : Employee::where('id', $employee->id);
+
+        $employeeQuery->latest()->limit(5)->get()->each(
             fn (Employee $e) => $activity->push([
                 'icon' => 'bx-user-plus',
                 'text' => "{$e->fullName()} joined as a new employee",

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Web\Admin\TenantController;
 use App\Http\Controllers\Web\AttendanceController;
 use App\Http\Controllers\Web\AuditLogController;
 use App\Http\Controllers\Web\BranchController;
@@ -22,7 +23,17 @@ use App\Http\Controllers\Web\ShiftController;
 use App\Http\Controllers\Web\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', fn () => redirect()->route('dashboard'));
+Route::get('/', fn () => redirect()->route(
+    request()->user()?->is_super_admin ? 'admin.tenants.index' : 'dashboard'
+));
+
+// The platform admin console: onboarding a new company (tenant) is deliberately not
+// self-service (see App\Actions\Tenancy\CreateTenant) — only a super admin reaches
+// this, via its own middleware rather than the role:/permission: ones used below,
+// since a super admin holds no tenant-scoped role at all.
+Route::middleware(['auth', 'super-admin'])->prefix('admin')->name('admin.')->group(function (): void {
+    Route::resource('tenants', TenantController::class)->only(['index', 'create', 'store']);
+});
 
 // Access control lives here, on the routes, rather than inside controllers/requests:
 // related routes are wrapped in a Route::middleware('role:RoleA|RoleB')->group() block

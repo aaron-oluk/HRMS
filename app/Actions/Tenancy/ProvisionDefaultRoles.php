@@ -3,6 +3,8 @@
 namespace App\Actions\Tenancy;
 
 use App\Models\Tenant;
+use Database\Seeders\PermissionSeeder;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
@@ -120,6 +122,14 @@ class ProvisionDefaultRoles
      */
     public function handle(Tenant $tenant): array
     {
+        // Permissions are global (shared across every tenant), not tenant-scoped, and are
+        // normally seeded once at deploy time via PermissionSeeder. Ensuring them here too
+        // (idempotently — findOrCreate is a no-op once they exist) means onboarding a new
+        // tenant never depends on that seeder having been run first.
+        foreach (PermissionSeeder::PERMISSIONS as $permission) {
+            Permission::findOrCreate($permission, 'web');
+        }
+
         $this->permissionRegistrar->setPermissionsTeamId($tenant->id);
 
         $roles = [];
