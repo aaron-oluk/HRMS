@@ -16,7 +16,7 @@
                 </span>
                 {{ config('app.name') }}
             </span>
-            <p class="mt-1.5 text-sm text-slate-500">HR &amp; Payroll for Uganda</p>
+            <p class="mt-1.5 text-sm text-slate-500">HR &amp; Payroll software</p>
         </div>
 
         <div class="w-full max-w-md">

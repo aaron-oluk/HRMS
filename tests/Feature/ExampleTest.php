@@ -1,8 +1,9 @@
 <?php
 
-test('guests are redirected to login', function () {
-    $response = $this->get('/');
+test('guests see the landing page', function () {
+    $this->get('/')->assertOk()->assertSee('Log in');
+});
 
-    $response->assertRedirect('/dashboard');
+test('guests are redirected to login from the dashboard', function () {
     $this->get('/dashboard')->assertRedirect('/login');
 });

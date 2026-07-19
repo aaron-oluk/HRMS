@@ -23,9 +23,13 @@ use App\Http\Controllers\Web\ShiftController;
 use App\Http\Controllers\Web\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', fn () => redirect()->route(
-    request()->user()?->is_super_admin ? 'admin.tenants.index' : 'dashboard'
-));
+Route::get('/', function () {
+    if (! request()->user()) {
+        return view('landing');
+    }
+
+    return redirect()->route(request()->user()->is_super_admin ? 'admin.tenants.index' : 'dashboard');
+})->name('landing');
 
 // The platform admin console: onboarding a new company (tenant) is deliberately not
 // self-service (see App\Actions\Tenancy\CreateTenant) — only a super admin reaches
