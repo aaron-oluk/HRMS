@@ -3,6 +3,10 @@
 namespace Database\Seeders;
 
 use App\Actions\Attendance\RecomputeAttendanceDay;
+use App\Actions\Payroll\GeneratePayrollRun;
+use App\Actions\Performance\CreatePerformanceReviewCycle;
+use App\Actions\Performance\SubmitManagerReview;
+use App\Actions\Performance\SubmitSelfReview;
 use App\Actions\Tenancy\ProvisionDefaultRoles;
 use App\Models\ClockEvent;
 use App\Models\Department;
@@ -10,9 +14,12 @@ use App\Models\Employee;
 use App\Models\Employment;
 use App\Models\Entity;
 use App\Models\Grade;
+use App\Models\JobRequisition;
 use App\Models\LeaveRequest;
 use App\Models\LeaveType;
 use App\Models\OvertimeRequest;
+use App\Models\PayrollRun;
+use App\Models\PerformanceReviewCycle;
 use App\Models\Position;
 use App\Models\Shift;
 use App\Models\Tenant;
@@ -311,5 +318,63 @@ class DemoTenantSeeder extends Seeder
             ['tenant_id' => $tenant->id, 'employee_id' => $reportEmployee->id, 'date' => now()->subDay()->toDateString()],
             ['hours' => 2.5, 'reason' => 'Production incident', 'status' => 'pending']
         );
+
+        if (! PayrollRun::where('entity_id', $entity->id)->whereDate('period_month', now()->startOfMonth())->exists()) {
+            app(GeneratePayrollRun::class)->handle($entity, now()->toDateString(), $hrAdmin);
+        }
+
+        $requisition = JobRequisition::firstOrCreate(
+            ['tenant_id' => $tenant->id, 'department_id' => $departments['Engineering']->id, 'title' => 'Backend Engineer'],
+            [
+                'entity_id' => $entity->id,
+                'position_id' => $positions['Software Engineer']->id,
+                'headcount' => 2,
+                'status' => 'open',
+                'requested_by' => $manager->id,
+                'description' => 'Growing the platform team — 2 openings.',
+                'opened_at' => now()->subWeek(),
+            ]
+        );
+
+        foreach ([
+            ['first_name' => 'Aisha', 'last_name' => 'Nantongo', 'email' => 'aisha.nantongo@example.com', 'source' => 'referral', 'status' => 'interview'],
+            ['first_name' => 'Brian', 'last_name' => 'Kato', 'email' => 'brian.kato@example.com', 'source' => 'job board', 'status' => 'applied'],
+            ['first_name' => 'Carol', 'last_name' => 'Auma', 'email' => 'carol.auma@example.com', 'source' => 'linkedin', 'status' => 'hired'],
+        ] as $candidate) {
+            $requisition->candidates()->firstOrCreate(
+                ['tenant_id' => $tenant->id, 'email' => $candidate['email']],
+                $candidate
+            );
+        }
+
+        if (! PerformanceReviewCycle::where('tenant_id', $tenant->id)->exists()) {
+            $cycle = app(CreatePerformanceReviewCycle::class)->handle([
+                'name' => now()->year.' H'.(now()->month <= 6 ? 1 : 2),
+                'start_date' => now()->startOfYear()->toDateString(),
+                'end_date' => now()->endOfYear()->toDateString(),
+            ]);
+
+            // One review self-submitted (awaiting the manager's half, visible in their Inbox)...
+            $reportReview = $cycle->reviews()->where('employee_id', $reportEmployee->id)->first();
+            if ($reportReview) {
+                app(SubmitSelfReview::class)->handle($reportReview, $reportEmployee, [
+                    'rating' => 4,
+                    'comments' => 'Shipped the Q2 migration ahead of schedule.',
+                ]);
+            }
+
+            // ...and one fully completed, to show the finished state.
+            $hrAdminReview = $cycle->reviews()->where('employee_id', $hrAdminEmployee->id)->first();
+            if ($hrAdminReview) {
+                app(SubmitSelfReview::class)->handle($hrAdminReview, $hrAdminEmployee, [
+                    'rating' => 5,
+                    'comments' => 'Rolled out the new onboarding process tenant-wide.',
+                ]);
+                app(SubmitManagerReview::class)->handle($hrAdminReview, $hrAdmin, [
+                    'rating' => 5,
+                    'comments' => 'Strong quarter, exceeded expectations.',
+                ]);
+            }
+        }
     }
 }

@@ -35,6 +35,16 @@ class ProvisionDefaultRoles
             'attendance.approve-overtime',
             'attendance.view-team',
             'audit.view',
+            'payroll.view',
+            'payroll.run',
+            'payroll.approve',
+            'payroll.disburse',
+            'recruitment.view',
+            'recruitment.manage',
+            'recruitment.view-candidate-pii',
+            'performance.view',
+            'performance.manage-cycles',
+            'performance.review',
         ],
         // Full HR operations tenant-wide, except system/user administration and audit log access.
         'HR Manager' => [
@@ -55,8 +65,22 @@ class ProvisionDefaultRoles
             'attendance.manage-shifts',
             'attendance.approve-overtime',
             'attendance.view-team',
+            'payroll.view',
+            'payroll.run',
+            'payroll.approve',
+            'payroll.disburse',
+            'recruitment.view',
+            'recruitment.manage',
+            'recruitment.view-candidate-pii',
+            'performance.view',
+            'performance.manage-cycles',
+            'performance.review',
         ],
         // Operational HR: create/update employees, no delete, no salary/bank visibility.
+        // Deliberately excluded from all payroll and performance-review permissions — DOC.md's
+        // payroll matrix grants this role full payroll-run access, but that conflicts with its
+        // established exclusion from employees.view-salary elsewhere in this file; the codebase's
+        // existing salary-access precedent wins.
         'HR Specialist' => [
             'org.view',
             'employees.view',
@@ -70,6 +94,9 @@ class ProvisionDefaultRoles
             'attendance.manage-shifts',
             'attendance.approve-overtime',
             'attendance.view-team',
+            'recruitment.view',
+            'recruitment.manage',
+            'recruitment.view-candidate-pii',
         ],
         // Scoped to their own department (see TeamScope); no sensitive-field visibility.
         'Department Manager' => [
@@ -82,6 +109,9 @@ class ProvisionDefaultRoles
             'attendance.manage-shifts',
             'attendance.approve-overtime',
             'attendance.view-team',
+            'payroll.view-team-summary',
+            'performance.view',
+            'performance.review',
         ],
         // Scoped to direct reports only (see TeamScope); view-only, no edit rights.
         'Team Lead' => [
@@ -89,6 +119,9 @@ class ProvisionDefaultRoles
             'leave.approve',
             'attendance.approve-overtime',
             'attendance.view-team',
+            'payroll.view-team-summary',
+            'performance.view',
+            'performance.review',
         ],
         // Read-only, tenant-wide, including sensitive fields, plus access-log visibility.
         'Auditor' => [
@@ -99,6 +132,9 @@ class ProvisionDefaultRoles
             'employees.view-bank-details',
             'employees.view-documents',
             'audit.view',
+            'payroll.view',
+            'recruitment.view',
+            'recruitment.view-candidate-pii',
         ],
         // Views employee financial data for payroll/disbursement purposes only.
         'Accountant' => [
@@ -106,12 +142,19 @@ class ProvisionDefaultRoles
             'employees.view-salary',
             'employees.view-bank-details',
             'audit.view',
+            'payroll.view',
+            'payroll.run',
+            'payroll.disburse',
         ],
-        'Employee' => [],
+        'Employee' => [
+            'payroll.view-own',
+        ],
         // Bonus read-only role (not in DOC.md), unaffected by this rebuild.
         'Executive' => [
             'org.view',
             'employees.view',
+            'payroll.view-team-summary',
+            'recruitment.view',
         ],
     ];
 

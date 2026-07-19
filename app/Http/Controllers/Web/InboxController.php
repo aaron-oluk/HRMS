@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\LeaveRequest;
 use App\Models\OvertimeRequest;
+use App\Models\PerformanceReview;
 use App\Support\Approvals\TeamScope;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -41,6 +42,20 @@ class InboxController extends Controller
                     'submitted_at' => $r->created_at,
                     'approve_route' => route('attendance.overtime.approve', $r),
                     'reject_route' => route('attendance.overtime.reject', $r),
+                ]));
+        }
+
+        if ($user->can('performance.review')) {
+            $teamScope->scopeToTeam(PerformanceReview::with('employee', 'cycle')->awaitingManagerReview(), $user)
+                ->get()
+                ->each(fn (PerformanceReview $r) => $items->push([
+                    'type' => 'Performance review',
+                    'icon' => 'bx-line-chart',
+                    'employee' => $r->employee->fullName(),
+                    'summary' => "Self-review submitted for {$r->cycle->name}",
+                    'submitted_at' => $r->self_submitted_at,
+                    'action_route' => route('performance.cycles.show', $r->cycle),
+                    'action_label' => 'Review',
                 ]));
         }
 

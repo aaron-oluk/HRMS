@@ -21,18 +21,24 @@
                     </div>
 
                     <div class="flex shrink-0 items-center gap-x-2">
-                        <form method="POST" action="{{ $item['approve_route'] }}">
-                            @csrf
-                            <button type="submit" class="inline-flex items-center gap-x-1 rounded-md bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100">
-                                <i class="bx bx-check"></i> Approve
-                            </button>
-                        </form>
-                        <form method="POST" action="{{ $item['reject_route'] }}">
-                            @csrf
-                            <button type="submit" class="inline-flex items-center gap-x-1 rounded-md bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100">
-                                <i class="bx bx-x"></i> Deny
-                            </button>
-                        </form>
+                        @if (isset($item['approve_route']))
+                            <form method="POST" action="{{ $item['approve_route'] }}">
+                                @csrf
+                                <button type="submit" class="inline-flex items-center gap-x-1 rounded-md bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100">
+                                    <i class="bx bx-check"></i> Approve
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ $item['reject_route'] }}">
+                                @csrf
+                                <button type="submit" class="inline-flex items-center gap-x-1 rounded-md bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100">
+                                    <i class="bx bx-x"></i> Deny
+                                </button>
+                            </form>
+                        @else
+                            <a href="{{ $item['action_route'] }}" class="inline-flex items-center gap-x-1 rounded-md bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100">
+                                {{ $item['action_label'] }}
+                            </a>
+                        @endif
                     </div>
                 </x-card>
             @endforeach

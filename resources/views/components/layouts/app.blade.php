@@ -68,6 +68,24 @@
                 @endif
             </x-nav-link>
 
+            @canany(['payroll.view', 'payroll.view-team-summary', 'payroll.run'])
+                <x-nav-link :href="route('payroll.runs.index')" :active="request()->routeIs('payroll.runs.*')" icon="bx-receipt">
+                    Payroll
+                </x-nav-link>
+            @endcanany
+
+            @canany(['recruitment.view', 'recruitment.manage'])
+                <x-nav-link :href="route('recruitment.requisitions.index')" :active="request()->routeIs('recruitment.requisitions.*')" icon="bx-briefcase-alt-2">
+                    Recruitment
+                </x-nav-link>
+            @endcanany
+
+            @can('performance.view')
+                <x-nav-link :href="route('performance.cycles.index')" :active="request()->routeIs('performance.cycles.*')" icon="bx-line-chart">
+                    Performance
+                </x-nav-link>
+            @endcan
+
             @can('org.view')
                 <x-nav-section>Organization</x-nav-section>
                 <x-nav-link :href="route('entities.index')" :active="request()->routeIs('entities.*')" icon="bx-buildings">

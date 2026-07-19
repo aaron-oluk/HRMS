@@ -4,6 +4,7 @@ use App\Http\Controllers\Web\Admin\TenantController;
 use App\Http\Controllers\Web\AttendanceController;
 use App\Http\Controllers\Web\AuditLogController;
 use App\Http\Controllers\Web\BranchController;
+use App\Http\Controllers\Web\CandidateController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\DepartmentController;
 use App\Http\Controllers\Web\EmployeeBankAccountController;
@@ -14,9 +15,13 @@ use App\Http\Controllers\Web\EmploymentController;
 use App\Http\Controllers\Web\EntityController;
 use App\Http\Controllers\Web\GradeController;
 use App\Http\Controllers\Web\InboxController;
+use App\Http\Controllers\Web\JobRequisitionController;
 use App\Http\Controllers\Web\LeaveController;
 use App\Http\Controllers\Web\LeaveTypeController;
 use App\Http\Controllers\Web\NotificationController;
+use App\Http\Controllers\Web\PayrollRunController;
+use App\Http\Controllers\Web\PerformanceReviewController;
+use App\Http\Controllers\Web\PerformanceReviewCycleController;
 use App\Http\Controllers\Web\PositionController;
 use App\Http\Controllers\Web\ProfileController;
 use App\Http\Controllers\Web\ShiftController;
@@ -123,6 +128,79 @@ Route::middleware('auth')->group(function (): void {
     Route::middleware('role:HR Admin|HR Manager|HR Specialist|Department Manager|Team Lead')->group(function (): void {
         Route::post('attendance/overtime/{overtimeRequest}/approve', [AttendanceController::class, 'approveOvertime'])->name('attendance.overtime.approve');
         Route::post('attendance/overtime/{overtimeRequest}/reject', [AttendanceController::class, 'rejectOvertime'])->name('attendance.overtime.reject');
+    });
+
+    // 'create' must be registered before the index/show group's {payrollRun} wildcard route,
+    // otherwise Laravel matches the literal "create" segment against it (same class of bug as
+    // the employees resource above).
+    Route::middleware('role:HR Admin|HR Manager|Accountant')->group(function (): void {
+        Route::get('payroll/runs/create', [PayrollRunController::class, 'create'])->name('payroll.runs.create');
+        Route::post('payroll/runs', [PayrollRunController::class, 'store'])->name('payroll.runs.store');
+        Route::post('payroll/runs/{payrollRun}/submit', [PayrollRunController::class, 'submit'])->name('payroll.runs.submit');
+        Route::post('payroll/runs/{payrollRun}/disburse', [PayrollRunController::class, 'disburse'])->name('payroll.runs.disburse');
+    });
+
+    Route::middleware('role:HR Admin|HR Manager')->group(function (): void {
+        Route::post('payroll/runs/{payrollRun}/approve', [PayrollRunController::class, 'approve'])->name('payroll.runs.approve');
+    });
+
+    Route::middleware('role:HR Admin|HR Manager|Accountant|Auditor|Department Manager|Team Lead|Executive')->group(function (): void {
+        // Route::resource() only dot-converts a name that already contains dots — a bare
+        // slash like "payroll/runs" does NOT auto-namespace the route names (it silently
+        // names them "runs.index"/"runs.show"), so the base name must be set explicitly.
+        Route::resource('payroll/runs', PayrollRunController::class)
+            ->only(['index', 'show'])
+            ->parameters(['runs' => 'payrollRun'])
+            ->names('payroll.runs');
+    });
+
+    // Same create-before-wildcard ordering requirement as above.
+    Route::middleware('role:HR Admin|HR Manager|HR Specialist')->group(function (): void {
+        Route::resource('recruitment/requisitions', JobRequisitionController::class)
+            ->only(['create', 'store', 'edit', 'update'])
+            ->parameters(['requisitions' => 'jobRequisition'])
+            ->names('recruitment.requisitions');
+    });
+
+    Route::middleware('role:HR Admin|HR Manager|HR Specialist|Department Manager|Auditor|Executive')->group(function (): void {
+        Route::resource('recruitment/requisitions', JobRequisitionController::class)
+            ->only(['index', 'show'])
+            ->parameters(['requisitions' => 'jobRequisition'])
+            ->names('recruitment.requisitions');
+    });
+
+    Route::middleware('role:HR Admin|HR Manager|HR Specialist')->group(function (): void {
+        Route::scopeBindings()->group(function (): void {
+            Route::post('recruitment/requisitions/{jobRequisition}/candidates', [CandidateController::class, 'store'])
+                ->name('recruitment.requisitions.candidates.store');
+            Route::post('recruitment/requisitions/{jobRequisition}/candidates/{candidate}/stage', [CandidateController::class, 'updateStage'])
+                ->name('recruitment.requisitions.candidates.stage');
+        });
+    });
+
+    // Same create-before-wildcard ordering requirement as above.
+    Route::middleware('role:HR Admin|HR Manager')->group(function (): void {
+        Route::get('performance/cycles/create', [PerformanceReviewCycleController::class, 'create'])->name('performance.cycles.create');
+        Route::post('performance/cycles', [PerformanceReviewCycleController::class, 'store'])->name('performance.cycles.store');
+    });
+
+    Route::middleware('role:HR Admin|HR Manager|Department Manager|Team Lead')->group(function (): void {
+        Route::resource('performance/cycles', PerformanceReviewCycleController::class)
+            ->only(['index', 'show'])
+            ->parameters(['cycles' => 'performanceReviewCycle'])
+            ->names('performance.cycles');
+    });
+
+    Route::scopeBindings()->group(function (): void {
+        // Any authenticated employee may submit their own self-review — ownership is
+        // enforced inside SubmitSelfReview itself, not by route-level role gating.
+        Route::post('performance/cycles/{cycle}/reviews/{review}/self', [PerformanceReviewController::class, 'submitSelf'])
+            ->name('performance.reviews.submit-self');
+
+        Route::middleware('role:HR Admin|HR Manager|Department Manager|Team Lead')->group(function (): void {
+            Route::post('performance/cycles/{cycle}/reviews/{review}/manager', [PerformanceReviewController::class, 'submitManager'])
+                ->name('performance.reviews.submit-manager');
+        });
     });
 
     Route::scopeBindings()->group(function (): void {

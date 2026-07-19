@@ -114,6 +114,11 @@ class Employee extends Model
         return $this->hasMany(OvertimeRequest::class);
     }
 
+    public function payrollRunLines(): HasMany
+    {
+        return $this->hasMany(PayrollRunLine::class);
+    }
+
     /**
      * Current employment rows of employees who report to this employee.
      */

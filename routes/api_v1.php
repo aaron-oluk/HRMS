@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\V1\LeaveRequestController;
 use App\Http\Controllers\Api\V1\LeaveTypeController;
 use App\Http\Controllers\Api\V1\OvertimeApprovalController;
 use App\Http\Controllers\Api\V1\OvertimeRequestController;
+use App\Http\Controllers\Api\V1\PayrollRunController;
 use App\Http\Controllers\Api\V1\PositionController;
 use App\Http\Controllers\Api\V1\ShiftController;
 use App\Http\Controllers\Api\V1\UserController;
@@ -104,6 +105,14 @@ Route::middleware(['auth:sanctum', IdentifyTenant::class, SubstituteBindings::cl
         Route::get('overtime-approvals', [OvertimeApprovalController::class, 'index']);
         Route::post('overtime-requests/{overtimeRequest}/approve', [OvertimeApprovalController::class, 'approve']);
         Route::post('overtime-requests/{overtimeRequest}/reject', [OvertimeApprovalController::class, 'reject']);
+    });
+
+    Route::middleware('role:HR Admin|HR Manager|Accountant|Auditor|Department Manager|Team Lead|Executive')->group(function (): void {
+        Route::apiResource('payroll-runs', PayrollRunController::class)->only(['index', 'show']);
+    });
+
+    Route::middleware('role:HR Admin|HR Manager|Accountant')->group(function (): void {
+        Route::apiResource('payroll-runs', PayrollRunController::class)->only(['store']);
     });
 
     Route::scopeBindings()->group(function (): void {

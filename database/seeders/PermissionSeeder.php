@@ -30,6 +30,18 @@ class PermissionSeeder extends Seeder
         'attendance.approve-overtime',
         'attendance.view-team',
         'audit.view',
+        'payroll.view',
+        'payroll.view-team-summary',
+        'payroll.view-own',
+        'payroll.run',
+        'payroll.approve',
+        'payroll.disburse',
+        'recruitment.view',
+        'recruitment.manage',
+        'recruitment.view-candidate-pii',
+        'performance.view',
+        'performance.manage-cycles',
+        'performance.review',
     ];
 
     public function run(): void
