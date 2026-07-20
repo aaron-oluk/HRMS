@@ -64,7 +64,7 @@ class SignDocument
             title: 'Document signed: '.$document->title,
             message: "{$actor->name} signed the document.",
             icon: 'bx-check-double',
-            url: route('documents.show', $document),
+            url: route('documents.show', $document, absolute: false),
         ));
 
         return $document;

@@ -28,7 +28,7 @@ class ApproveLeaveRequest
             title: 'Leave request approved',
             message: "Your {$leaveRequest->leaveType->name} request for {$leaveRequest->start_date->toFormattedDateString()} was approved.",
             icon: 'bxs-check-circle',
-            url: route('leave.index'),
+            url: route('leave.index', absolute: false),
         ));
 
         return $leaveRequest;

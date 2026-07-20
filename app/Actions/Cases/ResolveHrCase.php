@@ -18,7 +18,7 @@ class ResolveHrCase
             title: 'Your case was resolved: '.$case->subject,
             message: 'HR has marked your case as resolved. Reply if you need anything further.',
             icon: 'bx-support',
-            url: route('cases.show', $case),
+            url: route('cases.show', $case, absolute: false),
         ));
 
         return $case;

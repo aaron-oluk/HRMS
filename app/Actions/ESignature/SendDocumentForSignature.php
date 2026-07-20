@@ -32,7 +32,7 @@ class SendDocumentForSignature
             title: 'Document to sign: '.$document->title,
             message: "{$uploader->name} sent you a document to sign.",
             icon: 'bx-file-blank',
-            url: route('documents.show', $document),
+            url: route('documents.show', $document, absolute: false),
         ));
 
         return $document;

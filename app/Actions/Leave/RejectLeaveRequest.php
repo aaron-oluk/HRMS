@@ -29,7 +29,7 @@ class RejectLeaveRequest
             title: 'Leave request rejected',
             message: "Your {$leaveRequest->leaveType->name} request for {$leaveRequest->start_date->toFormattedDateString()} was rejected".($reason ? ": {$reason}" : '.'),
             icon: 'bxs-x-circle',
-            url: route('leave.index'),
+            url: route('leave.index', absolute: false),
         ));
 
         return $leaveRequest;

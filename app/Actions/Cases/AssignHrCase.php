@@ -19,7 +19,7 @@ class AssignHrCase
             title: 'Case assigned to you: '.$case->subject,
             message: "A {$case->category} case was assigned to you.",
             icon: 'bx-support',
-            url: route('cases.show', $case),
+            url: route('cases.show', $case, absolute: false),
         ));
 
         return $case;

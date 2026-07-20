@@ -32,7 +32,7 @@ class ScheduleOneOnOne
             title: '1-on-1 scheduled',
             message: 'Your manager scheduled a 1-on-1 with you for '.$meeting->scheduled_at->format('d M Y, H:i').'.',
             icon: 'bx-calendar-event',
-            url: route('performance.my'),
+            url: route('performance.my', absolute: false),
         ));
 
         return $meeting;

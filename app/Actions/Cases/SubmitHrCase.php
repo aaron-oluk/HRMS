@@ -23,7 +23,7 @@ class SubmitHrCase
                 title: 'New HR case: '.$case->subject,
                 message: "{$employee->fullName()} submitted a new {$case->category} case.",
                 icon: 'bx-support',
-                url: route('cases.show', $case),
+                url: route('cases.show', $case, absolute: false),
             )));
 
         return $case;

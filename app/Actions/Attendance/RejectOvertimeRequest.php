@@ -29,7 +29,7 @@ class RejectOvertimeRequest
             title: 'Overtime request rejected',
             message: "Your {$overtimeRequest->hours}-hour overtime request for {$overtimeRequest->date->toFormattedDateString()} was rejected".($reason ? ": {$reason}" : '.'),
             icon: 'bxs-x-circle',
-            url: route('attendance.index'),
+            url: route('attendance.index', absolute: false),
         ));
 
         return $overtimeRequest;

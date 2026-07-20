@@ -28,7 +28,7 @@ class ApproveOvertimeRequest
             title: 'Overtime request approved',
             message: "Your {$overtimeRequest->hours}-hour overtime request for {$overtimeRequest->date->toFormattedDateString()} was approved.",
             icon: 'bxs-check-circle',
-            url: route('attendance.index'),
+            url: route('attendance.index', absolute: false),
         ));
 
         return $overtimeRequest;

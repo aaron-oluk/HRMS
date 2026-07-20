@@ -28,7 +28,7 @@ class MarkPayrollRunDisbursed
                 title: 'Payslip available',
                 message: "Your payslip for {$payrollRun->period_month->format('F Y')} is ready to view.",
                 icon: 'bx-receipt',
-                url: route('payroll.my-payslips'),
+                url: route('payroll.my-payslips', absolute: false),
             ))
         );
 

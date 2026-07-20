@@ -26,7 +26,7 @@ class AddCaseComment
                 title: 'New reply on: '.$case->subject,
                 message: "{$author->name} replied to the case.",
                 icon: 'bx-support',
-                url: route('cases.show', $case),
+                url: route('cases.show', $case, absolute: false),
             ));
         }
 

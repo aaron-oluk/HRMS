@@ -13,7 +13,7 @@ class NotificationController extends Controller
         $notification = $request->user()->notifications()->findOrFail($notification);
         $notification->markAsRead();
 
-        return redirect($notification->data['url'] ?? route('dashboard'));
+        return redirect($notification->data['url'] ?? route('dashboard', absolute: false));
     }
 
     public function readAll(Request $request): RedirectResponse
