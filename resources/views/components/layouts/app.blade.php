@@ -68,11 +68,20 @@
                 @endif
             </x-nav-link>
 
-            @canany(['payroll.view', 'payroll.view-team-summary', 'payroll.run'])
-                <x-nav-link :href="route('payroll.runs.index')" :active="request()->routeIs('payroll.runs.*')" icon="bx-receipt">
-                    Payroll
-                </x-nav-link>
-            @endcanany
+            @if (auth()->user()->canAny(['payroll.view', 'payroll.view-team-summary', 'payroll.run']) || auth()->user()->employee)
+                <x-nav-dropdown label="Payroll" icon="bx-receipt" :active="request()->routeIs('payroll.*')">
+                    @canany(['payroll.view', 'payroll.view-team-summary', 'payroll.run'])
+                        <x-nav-link :href="route('payroll.runs.index')" :active="request()->routeIs('payroll.runs.*')" icon="bx-list-ul">
+                            Payroll Runs
+                        </x-nav-link>
+                    @endcanany
+                    @if (auth()->user()->employee)
+                        <x-nav-link :href="route('payroll.my-payslips')" :active="request()->routeIs('payroll.my-payslips')" icon="bx-receipt">
+                            My Payslips
+                        </x-nav-link>
+                    @endif
+                </x-nav-dropdown>
+            @endif
 
             @canany(['recruitment.view', 'recruitment.manage'])
                 <x-nav-link :href="route('recruitment.requisitions.index')" :active="request()->routeIs('recruitment.requisitions.*')" icon="bx-briefcase-alt-2">
@@ -80,11 +89,20 @@
                 </x-nav-link>
             @endcanany
 
-            @can('performance.view')
-                <x-nav-link :href="route('performance.cycles.index')" :active="request()->routeIs('performance.cycles.*')" icon="bx-line-chart">
-                    Performance
-                </x-nav-link>
-            @endcan
+            @if (auth()->user()->can('performance.view') || auth()->user()->employee)
+                <x-nav-dropdown label="Performance" icon="bx-line-chart" :active="request()->routeIs('performance.*')">
+                    @can('performance.view')
+                        <x-nav-link :href="route('performance.cycles.index')" :active="request()->routeIs('performance.cycles.*')" icon="bx-refresh">
+                            Review Cycles
+                        </x-nav-link>
+                    @endcan
+                    @if (auth()->user()->employee)
+                        <x-nav-link :href="route('performance.my')" :active="request()->routeIs('performance.my')" icon="bx-user-check">
+                            My Performance
+                        </x-nav-link>
+                    @endif
+                </x-nav-dropdown>
+            @endif
 
             @can('engagement.manage')
                 <x-nav-link :href="route('engagement.surveys.index')" :active="request()->routeIs('engagement.surveys.*')" icon="bx-message-square-detail">
@@ -102,54 +120,59 @@
                 </x-nav-link>
             @endcan
 
-            <x-nav-link :href="route('documents.index')" :active="request()->routeIs('documents.*')" icon="bx-file-blank">
-                Documents
-            </x-nav-link>
+            <x-nav-dropdown label="Documents" icon="bx-file-blank" :active="request()->routeIs('documents.*')">
+                @can('esignature.send')
+                    <x-nav-link :href="route('documents.index')" :active="request()->routeIs('documents.index') || request()->routeIs('documents.show') || request()->routeIs('documents.create')" icon="bx-send">
+                        Sent Documents
+                    </x-nav-link>
+                @endcan
+                <x-nav-link :href="route('documents.signature.edit')" :active="request()->routeIs('documents.signature.edit')" icon="bx-pen">
+                    My Signature
+                </x-nav-link>
+            </x-nav-dropdown>
 
             @can('org.view')
-                <x-nav-section>Organization</x-nav-section>
-                <x-nav-link :href="route('entities.index')" :active="request()->routeIs('entities.*')" icon="bx-buildings">
-                    Entities
-                </x-nav-link>
-                <x-nav-link :href="route('branches.index')" :active="request()->routeIs('branches.*')" icon="bx-git-branch">
-                    Branches
-                </x-nav-link>
-                <x-nav-link :href="route('departments.index')" :active="request()->routeIs('departments.*')" icon="bx-sitemap">
-                    Departments
-                </x-nav-link>
-                <x-nav-link :href="route('positions.index')" :active="request()->routeIs('positions.*')" icon="bx-briefcase">
-                    Positions
-                </x-nav-link>
-                <x-nav-link :href="route('grades.index')" :active="request()->routeIs('grades.*')" icon="bx-layer">
-                    Grades
-                </x-nav-link>
-                <x-nav-link :href="route('leave-types.index')" :active="request()->routeIs('leave-types.*')" icon="bx-calendar-star">
-                    Leave Types
-                </x-nav-link>
-                <x-nav-link :href="route('shifts.index')" :active="request()->routeIs('shifts.*')" icon="bx-alarm">
-                    Shifts
-                </x-nav-link>
+                <x-nav-dropdown label="Organization" icon="bx-buildings" :active="request()->routeIs(['entities.*', 'branches.*', 'departments.*', 'positions.*', 'grades.*', 'leave-types.*', 'shifts.*'])">
+                    <x-nav-link :href="route('entities.index')" :active="request()->routeIs('entities.*')" icon="bx-buildings">
+                        Entities
+                    </x-nav-link>
+                    <x-nav-link :href="route('branches.index')" :active="request()->routeIs('branches.*')" icon="bx-git-branch">
+                        Branches
+                    </x-nav-link>
+                    <x-nav-link :href="route('departments.index')" :active="request()->routeIs('departments.*')" icon="bx-sitemap">
+                        Departments
+                    </x-nav-link>
+                    <x-nav-link :href="route('positions.index')" :active="request()->routeIs('positions.*')" icon="bx-briefcase">
+                        Positions
+                    </x-nav-link>
+                    <x-nav-link :href="route('grades.index')" :active="request()->routeIs('grades.*')" icon="bx-layer">
+                        Grades
+                    </x-nav-link>
+                    <x-nav-link :href="route('leave-types.index')" :active="request()->routeIs('leave-types.*')" icon="bx-calendar-star">
+                        Leave Types
+                    </x-nav-link>
+                    <x-nav-link :href="route('shifts.index')" :active="request()->routeIs('shifts.*')" icon="bx-alarm">
+                        Shifts
+                    </x-nav-link>
+                </x-nav-dropdown>
             @endcan
 
             @canany(['users.manage', 'audit.view'])
-                <x-nav-section>Administration</x-nav-section>
-                @can('users.manage')
-                    <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')" icon="bx-user-circle">
-                        Users &amp; Roles
-                    </x-nav-link>
-                @endcan
-                @can('audit.view')
-                    <x-nav-link :href="route('audit-logs.index')" :active="request()->routeIs('audit-logs.*')" icon="bx-history">
-                        Audit Log
-                    </x-nav-link>
-                @endcan
+                <x-nav-dropdown label="Administration" icon="bx-cog" :active="request()->routeIs(['users.*', 'audit-logs.*'])">
+                    @can('users.manage')
+                        <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')" icon="bx-user-circle">
+                            Users &amp; Roles
+                        </x-nav-link>
+                    @endcan
+                    @can('audit.view')
+                        <x-nav-link :href="route('audit-logs.index')" :active="request()->routeIs('audit-logs.*')" icon="bx-history">
+                            Audit Log
+                        </x-nav-link>
+                    @endcan
+                </x-nav-dropdown>
             @endcanany
 
-            @cannot('users.manage')
-                @cannot('audit.view')
-                    <x-nav-section>Account</x-nav-section>
-                @endcannot
-            @endcannot
+            <x-nav-section>Account</x-nav-section>
             <x-nav-link :href="route('profile.edit')" :active="request()->routeIs('profile.*')" icon="bx-user">
                 My Profile
             </x-nav-link>

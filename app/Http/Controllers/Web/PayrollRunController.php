@@ -57,6 +57,17 @@ class PayrollRunController extends Controller
         return view('payroll.runs.create', ['entities' => Entity::orderBy('name')->get()]);
     }
 
+    public function mine(Request $request): View
+    {
+        $employee = $request->user()->employee;
+
+        $payslips = $employee
+            ? $employee->payrollRunLines()->with('payrollRun')->get()->sortByDesc(fn ($line) => $line->payrollRun->period_month)->values()
+            : collect();
+
+        return view('payroll.my-payslips', ['payslips' => $payslips]);
+    }
+
     public function store(PayrollRunRequest $request, GeneratePayrollRun $generatePayrollRun): RedirectResponse
     {
         $entity = Entity::findOrFail($request->validated('entity_id'));

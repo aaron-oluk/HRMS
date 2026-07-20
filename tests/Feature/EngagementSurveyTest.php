@@ -30,7 +30,7 @@ test('an employee can respond to a survey once', function () {
 
     $this->actingAs($employeeUser)->post(route('engagement.surveys.respond', $survey), [
         'answers' => [['question_id' => $question->id, 'rating_value' => 5]],
-    ])->assertRedirect(route('profile.edit'));
+    ])->assertRedirect(route('engagement.surveys.show', $survey));
 
     expect($survey->responses()->where('employee_id', $employee->id)->exists())->toBeTrue();
 

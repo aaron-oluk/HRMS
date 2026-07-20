@@ -19,7 +19,7 @@
     @if ($canSign)
         @if (! $hasSignature)
             <x-alert type="info">
-                Upload your signature on <a href="{{ route('profile.edit') }}" class="font-medium underline">your profile</a> before signing.
+                Upload <a href="{{ route('documents.signature.edit') }}" class="font-medium underline">your signature</a> before signing.
             </x-alert>
         @else
             <x-card>

@@ -38,7 +38,7 @@ class LaunchSurvey
                     title: 'New survey: '.$survey->title,
                     message: 'HR would like your feedback — it only takes a minute.',
                     icon: 'bx-message-square-detail',
-                    url: route('profile.edit'),
+                    url: route('engagement.surveys.show', $survey),
                 ))
             );
 

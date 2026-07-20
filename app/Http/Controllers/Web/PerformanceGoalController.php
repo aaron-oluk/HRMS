@@ -14,13 +14,13 @@ class PerformanceGoalController extends Controller
     {
         $upsertGoal->handle($request->user()->employee, $request->validated());
 
-        return redirect()->route('profile.edit')->with('status', 'Goal added.');
+        return redirect()->route('performance.my')->with('status', 'Goal added.');
     }
 
     public function update(PerformanceGoalRequest $request, PerformanceGoal $goal, UpsertGoal $upsertGoal): RedirectResponse
     {
         $upsertGoal->handle($request->user()->employee, $request->validated(), $goal);
 
-        return redirect()->route('profile.edit')->with('status', 'Goal updated.');
+        return redirect()->route('performance.my')->with('status', 'Goal updated.');
     }
 }

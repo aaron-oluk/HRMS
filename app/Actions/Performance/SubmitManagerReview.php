@@ -39,7 +39,7 @@ class SubmitManagerReview
             title: 'Performance review completed',
             message: "Your review for {$review->cycle->name} has been completed by your manager.",
             icon: 'bx-line-chart',
-            url: route('profile.edit'),
+            url: route('performance.my'),
         ));
 
         return $review;

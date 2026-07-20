@@ -1,5 +1,5 @@
-<div class="max-w-xl">
-    <x-card>
+<x-layouts.app title="My Signature" header="My Signature">
+    <x-card class="max-w-xl">
         <div class="mb-6 flex items-center gap-x-4 border-b border-slate-100 pb-5">
             <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-emerald-50">
                 <i class="bx bx-pen text-xl text-emerald-600"></i>
@@ -26,4 +26,4 @@
             <x-button type="submit" icon="bx-upload">{{ auth()->user()->signature_path ? 'Replace signature' : 'Upload signature' }}</x-button>
         </form>
     </x-card>
-</div>
+</x-layouts.app>

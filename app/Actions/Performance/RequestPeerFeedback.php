@@ -31,7 +31,7 @@ class RequestPeerFeedback
             title: 'Feedback requested',
             message: "You've been asked to give feedback on {$review->employee->fullName()} for {$review->cycle->name}.",
             icon: 'bx-comment-detail',
-            url: route('profile.edit'),
+            url: route('performance.my'),
         ));
 
         return $request;

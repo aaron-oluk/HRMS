@@ -38,7 +38,7 @@ test('an employee can submit their own self-review', function () {
     $this->actingAs($reportUser)->post(route('performance.reviews.submit-self', [$cycle, $review]), [
         'rating' => 4,
         'comments' => 'Good quarter.',
-    ])->assertRedirect(route('profile.edit'));
+    ])->assertRedirect(route('performance.my'));
 
     expect($review->fresh()->status)->toBe('self_submitted');
     expect($review->fresh()->self_rating)->toBe(4);

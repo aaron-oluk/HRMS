@@ -66,6 +66,6 @@ class SurveyController extends Controller
     {
         $submitSurveyResponse->handle($survey, $request->user()->employee, $request->validated('answers'));
 
-        return redirect()->route('profile.edit')->with('status', 'Thanks for your feedback.');
+        return redirect()->route('engagement.surveys.show', $survey)->with('status', 'Thanks for your feedback.');
     }
 }

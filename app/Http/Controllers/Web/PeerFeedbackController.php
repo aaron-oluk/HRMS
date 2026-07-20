@@ -26,6 +26,6 @@ class PeerFeedbackController extends Controller
     {
         $submitPeerFeedback->handle($feedbackRequest, $request->user()->employee, $request->validated());
 
-        return redirect()->route('profile.edit')->with('status', 'Feedback submitted.');
+        return redirect()->route('performance.my')->with('status', 'Feedback submitted.');
     }
 }

@@ -162,6 +162,9 @@ Route::middleware('auth')->group(function (): void {
             ->names('payroll.runs');
     });
 
+    // Any authenticated employee may view their own payslips — ownership-based, no role gate.
+    Route::get('payroll/my-payslips', [PayrollRunController::class, 'mine'])->name('payroll.my-payslips');
+
     // Same create-before-wildcard ordering requirement as above.
     Route::middleware('role:HR Admin|HR Manager|HR Specialist')->group(function (): void {
         Route::resource('recruitment/requisitions', JobRequisitionController::class)
@@ -198,6 +201,9 @@ Route::middleware('auth')->group(function (): void {
             ->parameters(['cycles' => 'performanceReviewCycle'])
             ->names('performance.cycles');
     });
+
+    // Any authenticated employee may view their own performance data — ownership-based, no role gate.
+    Route::get('performance/my', [PerformanceReviewController::class, 'mine'])->name('performance.my');
 
     Route::scopeBindings()->group(function (): void {
         // Any authenticated employee may submit their own self-review — ownership is
@@ -251,6 +257,9 @@ Route::middleware('auth')->group(function (): void {
         Route::post('documents', [SignableDocumentController::class, 'store'])->name('documents.store');
     });
 
+    // 'signature' must also be registered before the documents/{document} wildcard below.
+    Route::get('documents/signature', [SignatureController::class, 'edit'])->name('documents.signature.edit');
+
     // index/show/page/download/sign are open to any authenticated user — the controller
     // itself restricts to the uploader, the signer, or an esignature.send holder, since
     // the same routes serve the sender's view and the signer's view.
@@ -265,10 +274,18 @@ Route::middleware('auth')->group(function (): void {
         Route::get('engagement/surveys/create', [SurveyController::class, 'create'])->name('engagement.surveys.create');
         Route::post('engagement/surveys', [SurveyController::class, 'store'])->name('engagement.surveys.store');
         Route::resource('engagement/surveys', SurveyController::class)
-            ->only(['index', 'show'])
+            ->only(['index'])
             ->parameters(['surveys' => 'survey'])
             ->names('engagement.surveys');
     });
+
+    // Any authenticated employee can view a single survey — SurveyController::show()
+    // renders the response form for anyone who hasn't answered yet, and only reveals
+    // aggregate results to engagement.manage holders (the view itself gates that section).
+    Route::resource('engagement/surveys', SurveyController::class)
+        ->only(['show'])
+        ->parameters(['surveys' => 'survey'])
+        ->names('engagement.surveys');
 
     // Any authenticated employee may respond to a survey addressed to them — ownership
     // (and the one-response-per-employee rule) is enforced inside SubmitSurveyResponse.
