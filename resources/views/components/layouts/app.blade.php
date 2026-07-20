@@ -86,6 +86,26 @@
                 </x-nav-link>
             @endcan
 
+            @can('engagement.manage')
+                <x-nav-link :href="route('engagement.surveys.index')" :active="request()->routeIs('engagement.surveys.*')" icon="bx-message-square-detail">
+                    Engagement
+                </x-nav-link>
+            @endcan
+
+            <x-nav-link :href="route('cases.index')" :active="request()->routeIs('cases.*')" icon="bx-support">
+                {{ auth()->user()->can('cases.manage') ? 'Cases' : 'My Cases' }}
+            </x-nav-link>
+
+            @can('reports.view')
+                <x-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.*')" icon="bx-bar-chart-alt-2">
+                    Reports
+                </x-nav-link>
+            @endcan
+
+            <x-nav-link :href="route('documents.index')" :active="request()->routeIs('documents.*')" icon="bx-file-blank">
+                Documents
+            </x-nav-link>
+
             @can('org.view')
                 <x-nav-section>Organization</x-nav-section>
                 <x-nav-link :href="route('entities.index')" :active="request()->routeIs('entities.*')" icon="bx-buildings">

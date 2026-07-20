@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\HrCase;
 use App\Models\LeaveRequest;
 use App\Models\OvertimeRequest;
 use App\Models\PerformanceReview;
+use App\Models\SignableDocument;
+use App\Models\Survey;
 use App\Support\Approvals\TeamScope;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -58,6 +61,51 @@ class InboxController extends Controller
                     'action_label' => 'Review',
                 ]));
         }
+
+        if ($user->employee) {
+            Survey::where('status', 'active')
+                ->whereDoesntHave('responses', fn ($q) => $q->where('employee_id', $user->employee->id))
+                ->get()
+                ->each(fn (Survey $survey) => $items->push([
+                    'type' => 'Survey',
+                    'icon' => 'bx-message-square-detail',
+                    'employee' => $user->employee->fullName(),
+                    'summary' => $survey->title,
+                    'submitted_at' => $survey->created_at,
+                    'action_route' => route('engagement.surveys.show', $survey),
+                    'action_label' => 'Respond',
+                ]));
+        }
+
+        if ($user->can('cases.manage')) {
+            HrCase::with('employee')
+                ->whereIn('status', ['open', 'in_progress'])
+                ->where(fn ($q) => $q->whereNull('assigned_to')->orWhere('assigned_to', $user->id))
+                ->get()
+                ->each(fn (HrCase $case) => $items->push([
+                    'type' => 'HR case',
+                    'icon' => 'bx-support',
+                    'employee' => $case->employee->fullName(),
+                    'summary' => $case->subject,
+                    'submitted_at' => $case->created_at,
+                    'action_route' => route('cases.show', $case),
+                    'action_label' => 'Respond',
+                ]));
+        }
+
+        SignableDocument::with('uploader')
+            ->where('signer_user_id', $user->id)
+            ->where('status', 'sent')
+            ->get()
+            ->each(fn (SignableDocument $document) => $items->push([
+                'type' => 'Document',
+                'icon' => 'bx-file-blank',
+                'employee' => $user->name,
+                'summary' => "\"{$document->title}\" from {$document->uploader->name}",
+                'submitted_at' => $document->sent_at,
+                'action_route' => route('documents.show', $document),
+                'action_label' => 'Sign',
+            ]));
 
         $items = $items->sortBy('submitted_at')->values();
 

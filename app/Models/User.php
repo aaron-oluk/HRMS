@@ -24,6 +24,7 @@ class User extends Authenticatable
         'password',
         'status',
         'is_super_admin',
+        'signature_path',
     ];
 
     protected $attributes = [

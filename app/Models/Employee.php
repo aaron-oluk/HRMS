@@ -119,6 +119,21 @@ class Employee extends Model
         return $this->hasMany(PayrollRunLine::class);
     }
 
+    public function hrCases(): HasMany
+    {
+        return $this->hasMany(HrCase::class);
+    }
+
+    public function performanceGoals(): HasMany
+    {
+        return $this->hasMany(PerformanceGoal::class);
+    }
+
+    public function oneOnOnes(): HasMany
+    {
+        return $this->hasMany(OneOnOneMeeting::class);
+    }
+
     /**
      * Current employment rows of employees who report to this employee.
      */

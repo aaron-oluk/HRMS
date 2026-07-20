@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PerformanceReview extends Model
 {
@@ -55,6 +56,11 @@ class PerformanceReview extends Model
     public function reviewer(): BelongsTo
     {
         return $this->belongsTo(Employee::class, 'reviewer_employee_id');
+    }
+
+    public function feedbackRequests(): HasMany
+    {
+        return $this->hasMany(PerformanceFeedbackRequest::class, 'performance_review_id');
     }
 
     public function scopeAwaitingManagerReview(Builder $query): Builder

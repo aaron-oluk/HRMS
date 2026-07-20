@@ -45,6 +45,10 @@ class ProvisionDefaultRoles
             'performance.view',
             'performance.manage-cycles',
             'performance.review',
+            'engagement.manage',
+            'cases.manage',
+            'reports.view',
+            'esignature.send',
         ],
         // Full HR operations tenant-wide, except system/user administration and audit log access.
         'HR Manager' => [
@@ -75,6 +79,10 @@ class ProvisionDefaultRoles
             'performance.view',
             'performance.manage-cycles',
             'performance.review',
+            'engagement.manage',
+            'cases.manage',
+            'reports.view',
+            'esignature.send',
         ],
         // Operational HR: create/update employees, no delete, no salary/bank visibility.
         // Deliberately excluded from all payroll and performance-review permissions — DOC.md's
@@ -97,6 +105,8 @@ class ProvisionDefaultRoles
             'recruitment.view',
             'recruitment.manage',
             'recruitment.view-candidate-pii',
+            'cases.manage',
+            'esignature.send',
         ],
         // Scoped to their own department (see TeamScope); no sensitive-field visibility.
         'Department Manager' => [
@@ -135,6 +145,7 @@ class ProvisionDefaultRoles
             'payroll.view',
             'recruitment.view',
             'recruitment.view-candidate-pii',
+            'reports.view',
         ],
         // Views employee financial data for payroll/disbursement purposes only.
         'Accountant' => [
@@ -145,6 +156,7 @@ class ProvisionDefaultRoles
             'payroll.view',
             'payroll.run',
             'payroll.disburse',
+            'reports.view',
         ],
         'Employee' => [
             'payroll.view-own',
@@ -155,6 +167,7 @@ class ProvisionDefaultRoles
             'employees.view',
             'payroll.view-team-summary',
             'recruitment.view',
+            'reports.view',
         ],
     ];
 

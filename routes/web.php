@@ -14,17 +14,25 @@ use App\Http\Controllers\Web\EmployeeMobileMoneyController;
 use App\Http\Controllers\Web\EmploymentController;
 use App\Http\Controllers\Web\EntityController;
 use App\Http\Controllers\Web\GradeController;
+use App\Http\Controllers\Web\HrCaseController;
 use App\Http\Controllers\Web\InboxController;
 use App\Http\Controllers\Web\JobRequisitionController;
 use App\Http\Controllers\Web\LeaveController;
 use App\Http\Controllers\Web\LeaveTypeController;
 use App\Http\Controllers\Web\NotificationController;
+use App\Http\Controllers\Web\OneOnOneController;
 use App\Http\Controllers\Web\PayrollRunController;
+use App\Http\Controllers\Web\PeerFeedbackController;
+use App\Http\Controllers\Web\PerformanceGoalController;
 use App\Http\Controllers\Web\PerformanceReviewController;
 use App\Http\Controllers\Web\PerformanceReviewCycleController;
 use App\Http\Controllers\Web\PositionController;
 use App\Http\Controllers\Web\ProfileController;
+use App\Http\Controllers\Web\ReportController;
 use App\Http\Controllers\Web\ShiftController;
+use App\Http\Controllers\Web\SignableDocumentController;
+use App\Http\Controllers\Web\SignatureController;
+use App\Http\Controllers\Web\SurveyController;
 use App\Http\Controllers\Web\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -201,6 +209,81 @@ Route::middleware('auth')->group(function (): void {
             Route::post('performance/cycles/{cycle}/reviews/{review}/manager', [PerformanceReviewController::class, 'submitManager'])
                 ->name('performance.reviews.submit-manager');
         });
+    });
+
+    // Goals are self-owned (like self-reviews) — any employee manages their own, ownership
+    // enforced inside UpsertGoal. Managers see their team's goals read-only via TeamScope
+    // on the cycle show page, no separate route needed for that.
+    Route::post('performance/goals', [PerformanceGoalController::class, 'store'])->name('performance.goals.store');
+    Route::put('performance/goals/{goal}', [PerformanceGoalController::class, 'update'])->name('performance.goals.update');
+
+    Route::middleware('role:HR Admin|HR Manager|Department Manager|Team Lead')->group(function (): void {
+        Route::post('performance/reviews/{review}/feedback-requests', [PeerFeedbackController::class, 'store'])
+            ->name('performance.feedback-requests.store');
+    });
+
+    // Submitting a nominated peer-feedback request is ownership-gated inside SubmitPeerFeedback
+    // (arbitrary peer relationship, not a hierarchy TeamScope can express) — no role middleware.
+    Route::post('performance/feedback-requests/{feedbackRequest}/submit', [PeerFeedbackController::class, 'submit'])
+        ->name('performance.feedback-requests.submit');
+
+    Route::middleware('role:HR Admin|HR Manager|Department Manager|Team Lead')->group(function (): void {
+        Route::post('performance/one-on-ones', [OneOnOneController::class, 'store'])->name('performance.one-on-ones.store');
+        Route::post('performance/one-on-ones/{meeting}/notes', [OneOnOneController::class, 'notes'])->name('performance.one-on-ones.notes');
+    });
+
+    Route::middleware('role:HR Admin|HR Manager|Auditor|Accountant|Executive')->prefix('reports')->name('reports.')->group(function (): void {
+        Route::get('/', [ReportController::class, 'index'])->name('index');
+        Route::get('headcount-by-department', [ReportController::class, 'headcountByDepartment'])->name('headcount-by-department');
+        Route::get('leave-utilization', [ReportController::class, 'leaveUtilization'])->name('leave-utilization');
+        Route::get('attendance-summary', [ReportController::class, 'attendanceSummary'])->name('attendance-summary');
+        Route::get('payroll-cost-summary', [ReportController::class, 'payrollCostSummary'])->name('payroll-cost-summary');
+        Route::get('recruitment-pipeline', [ReportController::class, 'recruitmentPipeline'])->name('recruitment-pipeline');
+    });
+
+    // Any authenticated user may upload/view their own reusable signature image.
+    Route::post('profile/signature', [SignatureController::class, 'store'])->name('profile.signature.store');
+    Route::get('profile/signature', [SignatureController::class, 'show'])->name('profile.signature.show');
+
+    // Same create-before-wildcard ordering requirement as above.
+    Route::middleware('role:HR Admin|HR Manager|HR Specialist')->group(function (): void {
+        Route::get('documents/create', [SignableDocumentController::class, 'create'])->name('documents.create');
+        Route::post('documents', [SignableDocumentController::class, 'store'])->name('documents.store');
+    });
+
+    // index/show/page/download/sign are open to any authenticated user — the controller
+    // itself restricts to the uploader, the signer, or an esignature.send holder, since
+    // the same routes serve the sender's view and the signer's view.
+    Route::get('documents', [SignableDocumentController::class, 'index'])->name('documents.index');
+    Route::get('documents/{document}', [SignableDocumentController::class, 'show'])->name('documents.show');
+    Route::get('documents/{document}/page/{page}', [SignableDocumentController::class, 'page'])->name('documents.page');
+    Route::get('documents/{document}/download', [SignableDocumentController::class, 'download'])->name('documents.download');
+    Route::post('documents/{document}/sign', [SignableDocumentController::class, 'sign'])->name('documents.sign');
+
+    // Same create-before-wildcard ordering requirement as above.
+    Route::middleware('role:HR Admin|HR Manager')->group(function (): void {
+        Route::get('engagement/surveys/create', [SurveyController::class, 'create'])->name('engagement.surveys.create');
+        Route::post('engagement/surveys', [SurveyController::class, 'store'])->name('engagement.surveys.store');
+        Route::resource('engagement/surveys', SurveyController::class)
+            ->only(['index', 'show'])
+            ->parameters(['surveys' => 'survey'])
+            ->names('engagement.surveys');
+    });
+
+    // Any authenticated employee may respond to a survey addressed to them — ownership
+    // (and the one-response-per-employee rule) is enforced inside SubmitSurveyResponse.
+    Route::post('engagement/surveys/{survey}/respond', [SurveyController::class, 'respond'])->name('engagement.surveys.respond');
+
+    // Cases: open to every authenticated user (any employee can submit/view/comment on
+    // their own cases) — HR-wide visibility and assign/resolve are gated inside the
+    // controller/action by the cases.manage permission, not by route middleware, since
+    // the same routes serve both "my cases" and "all cases" depending on who's asking.
+    Route::resource('cases', HrCaseController::class)->only(['index', 'create', 'store', 'show']);
+    Route::post('cases/{case}/comment', [HrCaseController::class, 'comment'])->name('cases.comment');
+
+    Route::middleware('role:HR Admin|HR Manager|HR Specialist')->group(function (): void {
+        Route::post('cases/{case}/assign', [HrCaseController::class, 'assign'])->name('cases.assign');
+        Route::post('cases/{case}/resolve', [HrCaseController::class, 'resolve'])->name('cases.resolve');
     });
 
     Route::scopeBindings()->group(function (): void {

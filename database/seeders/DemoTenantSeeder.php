@@ -3,8 +3,15 @@
 namespace Database\Seeders;
 
 use App\Actions\Attendance\RecomputeAttendanceDay;
+use App\Actions\Cases\SubmitHrCase;
+use App\Actions\Engagement\LaunchSurvey;
+use App\Actions\Engagement\SubmitSurveyResponse;
+use App\Actions\ESignature\SendDocumentForSignature;
+use App\Actions\ESignature\UploadSignature;
 use App\Actions\Payroll\GeneratePayrollRun;
 use App\Actions\Performance\CreatePerformanceReviewCycle;
+use App\Actions\Performance\RequestPeerFeedback;
+use App\Actions\Performance\ScheduleOneOnOne;
 use App\Actions\Performance\SubmitManagerReview;
 use App\Actions\Performance\SubmitSelfReview;
 use App\Actions\Tenancy\ProvisionDefaultRoles;
@@ -14,6 +21,7 @@ use App\Models\Employee;
 use App\Models\Employment;
 use App\Models\Entity;
 use App\Models\Grade;
+use App\Models\HrCase;
 use App\Models\JobRequisition;
 use App\Models\LeaveRequest;
 use App\Models\LeaveType;
@@ -22,10 +30,16 @@ use App\Models\PayrollRun;
 use App\Models\PerformanceReviewCycle;
 use App\Models\Position;
 use App\Models\Shift;
+use App\Models\SignableDocument;
+use App\Models\Survey;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Database\Seeder;
+use Illuminate\Http\UploadedFile;
+use Imagick;
+use ImagickDraw;
+use ImagickPixel;
 
 class DemoTenantSeeder extends Seeder
 {
@@ -375,6 +389,104 @@ class DemoTenantSeeder extends Seeder
                     'comments' => 'Strong quarter, exceeded expectations.',
                 ]);
             }
+
+            // Goal, peer feedback nomination, and a scheduled 1-on-1 for the same report,
+            // to demonstrate the performance-depth features against a real review cycle.
+            if (! $reportEmployee->performanceGoals()->exists()) {
+                $reportEmployee->performanceGoals()->create([
+                    'performance_review_cycle_id' => $cycle->id,
+                    'title' => 'Ship the API v2 migration',
+                    'target_value' => 100,
+                    'current_value' => 60,
+                    'unit' => '%',
+                    'status' => 'on_track',
+                    'due_date' => now()->addMonths(2)->toDateString(),
+                ]);
+            }
+
+            if ($reportReview && ! $reportReview->feedbackRequests()->exists()) {
+                app(RequestPeerFeedback::class)->handle($reportReview, $deptManagerEmployee, $manager);
+            }
+
+            if (! $reportEmployee->oneOnOnes()->exists()) {
+                app(ScheduleOneOnOne::class)->handle($reportEmployee->id, $manager, [
+                    'scheduled_at' => now()->addWeek()->toDateTimeString(),
+                    'agenda' => 'Career growth check-in',
+                ]);
+            }
+        }
+
+        if (! Survey::where('tenant_id', $tenant->id)->exists()) {
+            $survey = app(LaunchSurvey::class)->handle([
+                'title' => 'Quarterly pulse check',
+                'description' => 'Two quick questions — takes a minute.',
+                'is_anonymous' => true,
+                'questions' => [
+                    ['text' => 'How supported do you feel by your manager?', 'type' => 'rating'],
+                    ['text' => 'Anything HR should know about right now?', 'type' => 'text'],
+                ],
+            ], $hrAdmin);
+
+            app(SubmitSurveyResponse::class)->handle($survey, $managerEmployee, [
+                ['question_id' => $survey->questions[0]->id, 'rating_value' => 4],
+                ['question_id' => $survey->questions[1]->id, 'text_value' => 'Things are going well overall.'],
+            ]);
+        }
+
+        if (! HrCase::where('tenant_id', $tenant->id)->exists()) {
+            app(SubmitHrCase::class)->handle($reportEmployee, [
+                'category' => 'payroll',
+                'subject' => 'Question about my last payslip',
+                'description' => 'The NSSF deduction looks different from last month — could someone confirm it\'s correct?',
+            ]);
+        }
+
+        if (! $manager->signature_path) {
+            $signatureSource = tempnam(sys_get_temp_dir(), 'demo-signature').'.png';
+            $signatureImage = new Imagick;
+            $signatureImage->newImage(300, 120, new ImagickPixel('white'));
+            $signatureImage->setImageFormat('png');
+            $draw = new ImagickDraw;
+            $draw->setStrokeColor(new ImagickPixel('black'));
+            $draw->setStrokeWidth(4);
+            $draw->bezier([['x' => 20, 'y' => 90], ['x' => 100, 'y' => 20], ['x' => 200, 'y' => 100], ['x' => 280, 'y' => 30]]);
+            $signatureImage->drawImage($draw);
+            $signatureImage->writeImage($signatureSource);
+            $signatureImage->clear();
+            $signatureImage->destroy();
+
+            app(UploadSignature::class)->handle($manager, new UploadedFile($signatureSource, 'signature.png', 'image/png', null, true));
+            @unlink($signatureSource);
+        }
+
+        if (! SignableDocument::where('tenant_id', $tenant->id)->exists()) {
+            $documentSource = tempnam(sys_get_temp_dir(), 'demo-document').'.pdf';
+            $documentImage = new Imagick;
+            $page = new Imagick;
+            $page->newImage(850, 1100, new ImagickPixel('white'));
+            $page->setImageFormat('png');
+            $draw = new ImagickDraw;
+            $draw->setFillColor(new ImagickPixel('black'));
+            $draw->setFontSize(28);
+            $draw->annotation(60, 100, 'Aloflux Demo Ltd — Offer Letter');
+            $draw->setFontSize(16);
+            $draw->annotation(60, 160, 'This letter confirms your offer of employment.');
+            $page->drawImage($draw);
+            $documentImage->addImage($page);
+            $documentImage->setImageFormat('pdf');
+            $documentImage->writeImages($documentSource, true);
+            $documentImage->clear();
+            $documentImage->destroy();
+            $page->clear();
+            $page->destroy();
+
+            app(SendDocumentForSignature::class)->handle(
+                $hrAdmin,
+                $employeeUser,
+                'Offer Letter — '.$reportEmployee->fullName(),
+                new UploadedFile($documentSource, 'offer-letter.pdf', 'application/pdf', null, true)
+            );
+            @unlink($documentSource);
         }
     }
 }

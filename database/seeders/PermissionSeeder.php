@@ -42,6 +42,10 @@ class PermissionSeeder extends Seeder
         'performance.view',
         'performance.manage-cycles',
         'performance.review',
+        'engagement.manage',
+        'cases.manage',
+        'reports.view',
+        'esignature.send',
     ];
 
     public function run(): void
