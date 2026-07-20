@@ -1,5 +1,43 @@
+@php
+    $trend = $performanceReviews
+        ->whereNotNull('manager_rating')
+        ->sortBy(fn ($review) => $review->cycle->start_date)
+        ->map(fn ($review) => ['label' => $review->cycle->name, 'score' => round(((float) $review->manager_rating / 5) * 100, 1)])
+        ->values()
+        ->all();
+
+    $latestScore = $trend !== [] ? end($trend)['score'] : null;
+    $completedCount = $performanceReviews->where('status', 'completed')->count();
+    $activeGoals = $goals->whereNotIn('status', ['completed'])->count();
+    $nextOneOnOne = $oneOnOnes->where('status', 'scheduled')->sortBy('scheduled_at')->first();
+@endphp
+
 <x-layouts.app title="My Performance" header="My Performance">
-    <x-card class="!p-0 overflow-hidden">
+    <div class="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <x-card>
+            <p class="text-xs font-medium uppercase text-slate-400">Latest score</p>
+            <p class="mt-1 text-2xl font-semibold text-slate-900">{{ $latestScore !== null ? rtrim(rtrim(number_format($latestScore, 1), '0'), '.').'%' : '—' }}</p>
+        </x-card>
+        <x-card>
+            <p class="text-xs font-medium uppercase text-slate-400">Completed reviews</p>
+            <p class="mt-1 text-2xl font-semibold text-slate-900">{{ $completedCount }}</p>
+        </x-card>
+        <x-card>
+            <p class="text-xs font-medium uppercase text-slate-400">Active goals</p>
+            <p class="mt-1 text-2xl font-semibold text-slate-900">{{ $activeGoals }}</p>
+        </x-card>
+        <x-card>
+            <p class="text-xs font-medium uppercase text-slate-400">Next 1-on-1</p>
+            <p class="mt-1 text-2xl font-semibold text-slate-900">{{ $nextOneOnOne?->scheduled_at->format('d M') ?? '—' }}</p>
+        </x-card>
+    </div>
+
+    <x-card class="mb-6">
+        <h3 class="mb-4 text-sm font-semibold text-slate-900">Score trend</h3>
+        <x-trend-chart :data="$trend" />
+    </x-card>
+
+    <x-card class="mb-6 !p-0 overflow-hidden">
         <div class="flex items-center gap-x-4 border-b border-slate-100 p-6 pb-5">
             <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-emerald-50">
                 <i class="bx bx-line-chart text-xl text-emerald-600"></i>
@@ -40,16 +78,16 @@
                             </div>
                         </form>
                     @else
-                        <dl class="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
-                            <div>
-                                <dt class="text-slate-500">Self rating</dt>
-                                <dd class="font-medium text-slate-900">{{ $review->self_rating ?? '—' }} / 5</dd>
+                        <div class="mt-3 flex items-center gap-x-6">
+                            <div class="text-center">
+                                <p class="text-lg font-semibold text-slate-900">{{ $review->self_rating ?? '—' }}<span class="text-xs font-normal text-slate-400">/5</span></p>
+                                <p class="text-xs text-slate-500">Self</p>
                             </div>
-                            <div>
-                                <dt class="text-slate-500">Manager rating</dt>
-                                <dd class="font-medium text-slate-900">{{ $review->manager_rating ?? '—' }}{{ $review->manager_rating ? ' / 5' : '' }}</dd>
+                            <div class="text-center">
+                                <p class="text-lg font-semibold text-slate-900">{{ $review->manager_rating ?? '—' }}<span class="text-xs font-normal text-slate-400">{{ $review->manager_rating ? '/5' : '' }}</span></p>
+                                <p class="text-xs text-slate-500">Manager</p>
                             </div>
-                        </dl>
+                        </div>
                     @endif
                 </div>
             @empty
@@ -59,7 +97,7 @@
     </x-card>
 
     @if ($feedbackRequests->where('status', 'pending')->isNotEmpty())
-        <x-card class="mt-6 !p-0 overflow-hidden">
+        <x-card class="mb-6 !p-0 overflow-hidden">
             <div class="border-b border-slate-100 p-6 pb-5">
                 <h3 class="text-sm font-semibold text-slate-900">Feedback requested from you</h3>
             </div>
@@ -83,27 +121,33 @@
         </x-card>
     @endif
 
-    <x-card class="mt-6 !p-0 overflow-hidden">
+    <x-card class="mb-6 !p-0 overflow-hidden">
         <div class="border-b border-slate-100 p-6 pb-5">
             <h3 class="text-sm font-semibold text-slate-900">Goals</h3>
         </div>
         <div class="divide-y divide-slate-100">
             @forelse ($goals as $goal)
-                <div class="flex items-center justify-between p-6">
-                    <div>
+                @php($progress = $goal->target_value ? min(100, ((float) ($goal->current_value ?? 0) / (float) $goal->target_value) * 100) : null)
+                <div class="p-6">
+                    <div class="flex items-center justify-between">
                         <p class="text-sm font-medium text-slate-900">{{ $goal->title }}</p>
-                        <p class="text-xs text-slate-500">
-                            @if ($goal->target_value !== null)
-                                {{ $goal->current_value ?? 0 }} / {{ $goal->target_value }} {{ $goal->unit }}
-                            @endif
-                            @if ($goal->due_date)
-                                &middot; due {{ $goal->due_date->format('d M Y') }}
-                            @endif
-                        </p>
+                        <x-badge :color="match($goal->status) { 'completed' => 'success', 'at_risk' => 'warning', 'off_track' => 'danger', default => 'info' }">
+                            {{ ucfirst(str_replace('_', ' ', $goal->status)) }}
+                        </x-badge>
                     </div>
-                    <x-badge :color="match($goal->status) { 'completed' => 'success', 'at_risk' => 'warning', 'off_track' => 'danger', default => 'info' }">
-                        {{ ucfirst(str_replace('_', ' ', $goal->status)) }}
-                    </x-badge>
+                    <p class="mt-1 text-xs text-slate-500">
+                        @if ($goal->target_value !== null)
+                            {{ $goal->current_value ?? 0 }} / {{ $goal->target_value }} {{ $goal->unit }}
+                        @endif
+                        @if ($goal->due_date)
+                            &middot; due {{ $goal->due_date->format('d M Y') }}
+                        @endif
+                    </p>
+                    @if ($progress !== null)
+                        <div class="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                            <div class="h-full rounded-full bg-emerald-500" style="width: {{ $progress }}%"></div>
+                        </div>
+                    @endif
                 </div>
             @empty
                 <p class="p-6 text-center text-sm text-slate-500">No goals set yet.</p>
@@ -121,23 +165,28 @@
     </x-card>
 
     @if ($oneOnOnes->isNotEmpty())
-        <x-card class="mt-6 !p-0 overflow-hidden">
+        <x-card class="!p-0 overflow-hidden">
             <div class="border-b border-slate-100 p-6 pb-5">
                 <h3 class="text-sm font-semibold text-slate-900">1-on-1s</h3>
             </div>
             <div class="divide-y divide-slate-100">
                 @foreach ($oneOnOnes as $meeting)
-                    <div class="p-6">
-                        <div class="flex items-center justify-between">
-                            <p class="text-sm font-medium text-slate-900">{{ $meeting->scheduled_at->format('d M Y, H:i') }}</p>
-                            <x-badge :color="$meeting->status === 'completed' ? 'success' : 'neutral'">{{ ucfirst($meeting->status) }}</x-badge>
+                    <div class="flex gap-x-4 p-6">
+                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-50">
+                            <i class="bx bx-calendar-star text-base text-emerald-600"></i>
+                        </span>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center justify-between">
+                                <p class="text-sm font-medium text-slate-900">{{ $meeting->scheduled_at->format('d M Y, H:i') }}</p>
+                                <x-badge :color="$meeting->status === 'completed' ? 'success' : 'neutral'">{{ ucfirst($meeting->status) }}</x-badge>
+                            </div>
+                            @if ($meeting->agenda)
+                                <p class="mt-1 text-sm text-slate-500">{{ $meeting->agenda }}</p>
+                            @endif
+                            @if ($meeting->notes)
+                                <p class="mt-1 text-sm text-slate-600">{{ $meeting->notes }}</p>
+                            @endif
                         </div>
-                        @if ($meeting->agenda)
-                            <p class="mt-1 text-sm text-slate-500">{{ $meeting->agenda }}</p>
-                        @endif
-                        @if ($meeting->notes)
-                            <p class="mt-1 text-sm text-slate-600">{{ $meeting->notes }}</p>
-                        @endif
                     </div>
                 @endforeach
             </div>

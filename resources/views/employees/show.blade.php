@@ -1,12 +1,29 @@
 <x-layouts.app :title="$employee->fullName()" :header="$employee->fullName()">
+    @php($currentEmployment = $employee->currentEmployment)
+    @php($statusColor = match ($employee->status) {
+        'active' => 'success',
+        'on_leave' => 'info',
+        'suspended' => 'danger',
+        default => 'neutral',
+    })
+
     <div class="mb-4 flex items-center justify-between">
         <div class="flex items-center gap-x-3">
             <x-avatar :name="$employee->fullName()" size="lg" />
             <div>
                 <p class="text-base font-semibold text-slate-900">{{ $employee->fullName() }}</p>
-                <p class="flex items-center gap-x-1.5 text-sm text-slate-500">
-                    <i class="bx bx-id-card text-base"></i>
-                    {{ $employee->employee_number }} · {{ $employee->entity->name }}
+                <p class="text-sm text-slate-500">
+                    {{ $currentEmployment?->position?->title ?? 'No active position' }}
+                    @if ($currentEmployment?->department) &middot; {{ $currentEmployment->department->name }} @endif
+                </p>
+                <p class="mt-1 flex items-center gap-x-2">
+                    <span class="flex items-center gap-x-1 text-xs text-slate-500">
+                        <i class="bx bx-id-card text-sm"></i> {{ $employee->employee_number }}
+                    </span>
+                    <x-badge :color="$statusColor">{{ ucfirst(str_replace('_', ' ', $employee->status)) }}</x-badge>
+                    @if ($currentEmployment)
+                        <x-badge color="neutral">{{ ucfirst(str_replace('_', ' ', $currentEmployment->employment_type)) }}</x-badge>
+                    @endif
                 </p>
             </div>
         </div>
@@ -15,11 +32,11 @@
         @endcan
     </div>
 
-    <div x-data="{ tab: 'profile' }">
+    <div x-data="{ tab: 'overview' }">
         <div class="border-b border-slate-200">
             <nav class="-mb-px flex gap-x-6">
-                <button type="button" @click="tab = 'profile'" :class="tab === 'profile' ? 'border-emerald-600 text-emerald-600' : 'border-transparent text-slate-500 hover:text-slate-700'" class="flex items-center gap-x-1.5 border-b-2 px-1 py-3 text-sm font-medium">
-                    <i class="bx bx-user text-base"></i> Profile
+                <button type="button" @click="tab = 'overview'" :class="tab === 'overview' ? 'border-emerald-600 text-emerald-600' : 'border-transparent text-slate-500 hover:text-slate-700'" class="flex items-center gap-x-1.5 border-b-2 px-1 py-3 text-sm font-medium">
+                    <i class="bx bx-grid-alt text-base"></i> Overview
                 </button>
                 <button type="button" @click="tab = 'employment'" :class="tab === 'employment' ? 'border-emerald-600 text-emerald-600' : 'border-transparent text-slate-500 hover:text-slate-700'" class="flex items-center gap-x-1.5 border-b-2 px-1 py-3 text-sm font-medium">
                     <i class="bx bx-briefcase text-base"></i> Employment history
@@ -33,8 +50,8 @@
             </nav>
         </div>
 
-        <div class="mt-6" x-show="tab === 'profile'">
-            @include('employees.partials.profile')
+        <div class="mt-6" x-show="tab === 'overview'">
+            @include('employees.partials.overview')
         </div>
 
         <div class="mt-6" x-show="tab === 'employment'" x-cloak>

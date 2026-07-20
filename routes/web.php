@@ -10,9 +10,11 @@ use App\Http\Controllers\Web\CandidateController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\DepartmentController;
 use App\Http\Controllers\Web\EmployeeBankAccountController;
+use App\Http\Controllers\Web\EmployeeCompensationController;
 use App\Http\Controllers\Web\EmployeeController;
 use App\Http\Controllers\Web\EmployeeDocumentController;
 use App\Http\Controllers\Web\EmployeeMobileMoneyController;
+use App\Http\Controllers\Web\EmployeeNoteController;
 use App\Http\Controllers\Web\EmploymentController;
 use App\Http\Controllers\Web\EntityController;
 use App\Http\Controllers\Web\GradeController;
@@ -356,6 +358,20 @@ Route::middleware('auth')->group(function (): void {
                 ->name('employees.mobile-money.store');
             Route::delete('employees/{employee}/mobile-money/{mobileMoney}', [EmployeeMobileMoneyController::class, 'destroy'])
                 ->name('employees.mobile-money.destroy');
+        });
+
+        Route::middleware('role:HR Admin|HR Manager')->group(function (): void {
+            Route::post('employees/{employee}/compensation-items', [EmployeeCompensationController::class, 'store'])
+                ->name('employees.compensation-items.store');
+            Route::delete('employees/{employee}/compensation-items/{compensationItem}', [EmployeeCompensationController::class, 'destroy'])
+                ->name('employees.compensation-items.destroy');
+        });
+
+        Route::middleware('role:HR Admin|HR Manager|HR Specialist|Department Manager')->group(function (): void {
+            Route::post('employees/{employee}/notes', [EmployeeNoteController::class, 'store'])
+                ->name('employees.notes.store');
+            Route::delete('employees/{employee}/notes/{note}', [EmployeeNoteController::class, 'destroy'])
+                ->name('employees.notes.destroy');
         });
     });
 });

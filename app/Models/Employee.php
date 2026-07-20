@@ -129,9 +129,24 @@ class Employee extends Model
         return $this->hasMany(PerformanceGoal::class);
     }
 
+    public function performanceReviews(): HasMany
+    {
+        return $this->hasMany(PerformanceReview::class);
+    }
+
     public function oneOnOnes(): HasMany
     {
         return $this->hasMany(OneOnOneMeeting::class);
+    }
+
+    public function compensationItems(): HasMany
+    {
+        return $this->hasMany(EmployeeCompensationItem::class);
+    }
+
+    public function notes(): HasMany
+    {
+        return $this->hasMany(EmployeeNote::class)->latest();
     }
 
     /**
