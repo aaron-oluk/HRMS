@@ -3,20 +3,8 @@
 use App\Actions\Tenancy\ProvisionDefaultRoles;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Support\Tenancy\TenantContext;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
-
-function superAdmin(): User
-{
-    $superAdmin = User::factory()->create(['tenant_id' => null, 'is_super_admin' => true]);
-
-    // A fresh production request for a tenant-less super admin never resolves a tenant
-    // context; reset the singleton here to undo any leftover context from other fixtures.
-    app(TenantContext::class)->set(null);
-
-    return $superAdmin;
-}
 
 test('a super admin can view the platform admin console', function () {
     $this->actingAs(superAdmin())->get(route('admin.tenants.index'))->assertOk();

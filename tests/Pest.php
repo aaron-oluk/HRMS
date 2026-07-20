@@ -58,6 +58,20 @@ expect()->extend('toBeOne', function () {
 */
 
 /**
+ * Create a tenant-less super admin. A fresh production request for a tenant-less super
+ * admin never resolves a tenant context; reset the singleton here to undo any leftover
+ * context left behind by other fixtures in the same test.
+ */
+function superAdmin(): User
+{
+    $superAdmin = User::factory()->create(['tenant_id' => null, 'is_super_admin' => true]);
+
+    app(TenantContext::class)->set(null);
+
+    return $superAdmin;
+}
+
+/**
  * Create a tenant with default roles provisioned and a user assigned the given role.
  * Also seeds the global permission catalog and sets the tenancy/permission context
  * for the current process, matching what IdentifyTenant middleware does per request.

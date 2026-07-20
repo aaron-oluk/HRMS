@@ -95,6 +95,28 @@ class AccessAudit
         );
     }
 
+    public static function impersonationStarted(User $actor, User $target): void
+    {
+        static::write(
+            tenantId: $target->tenant_id,
+            actorId: $actor->id,
+            auditableType: User::class,
+            auditableId: $target->id,
+            action: 'impersonation_started',
+        );
+    }
+
+    public static function impersonationEnded(User $actor, User $target): void
+    {
+        static::write(
+            tenantId: $target->tenant_id,
+            actorId: $actor->id,
+            auditableType: User::class,
+            auditableId: $target->id,
+            action: 'impersonation_ended',
+        );
+    }
+
     protected static function write(
         ?int $tenantId,
         ?int $actorId,

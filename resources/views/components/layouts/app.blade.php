@@ -8,6 +8,16 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="h-full bg-slate-50 antialiased" x-data="{ sidebarOpen: false }">
+@if (session('impersonator_id'))
+    <div class="flex items-center justify-center gap-x-3 bg-amber-500 px-4 py-2 text-center text-sm font-medium text-amber-950">
+        <i class="bx bxs-user-detail text-base"></i>
+        <span>Viewing as {{ auth()->user()->name }} ({{ auth()->user()->tenant?->name }}) &mdash; changes you make are real.</span>
+        <form method="POST" action="{{ route('impersonation.stop') }}">
+            @csrf
+            <button type="submit" class="font-semibold underline hover:no-underline">Return to admin console</button>
+        </form>
+    </div>
+@endif
 <div class="min-h-full">
     <div class="lg:hidden fixed inset-x-0 top-0 z-40 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
         <span class="flex items-center gap-x-2 text-lg font-bold text-slate-900">
@@ -68,7 +78,7 @@
                 @endif
             </x-nav-link>
 
-            @if (auth()->user()->canAny(['payroll.view', 'payroll.view-team-summary', 'payroll.run']) || auth()->user()->employee)
+            @if ($enabledModules['payroll'] && (auth()->user()->canAny(['payroll.view', 'payroll.view-team-summary', 'payroll.run']) || auth()->user()->employee))
                 <x-nav-dropdown label="Payroll" icon="bx-receipt" :active="request()->routeIs('payroll.*')">
                     @canany(['payroll.view', 'payroll.view-team-summary', 'payroll.run'])
                         <x-nav-link :href="route('payroll.runs.index')" :active="request()->routeIs('payroll.runs.*')" icon="bx-list-ul">
@@ -83,13 +93,15 @@
                 </x-nav-dropdown>
             @endif
 
-            @canany(['recruitment.view', 'recruitment.manage'])
-                <x-nav-link :href="route('recruitment.requisitions.index')" :active="request()->routeIs('recruitment.requisitions.*')" icon="bx-briefcase-alt-2">
-                    Recruitment
-                </x-nav-link>
-            @endcanany
+            @if ($enabledModules['recruitment'])
+                @canany(['recruitment.view', 'recruitment.manage'])
+                    <x-nav-link :href="route('recruitment.requisitions.index')" :active="request()->routeIs('recruitment.requisitions.*')" icon="bx-briefcase-alt-2">
+                        Recruitment
+                    </x-nav-link>
+                @endcanany
+            @endif
 
-            @if (auth()->user()->can('performance.view') || auth()->user()->employee)
+            @if ($enabledModules['performance'] && (auth()->user()->can('performance.view') || auth()->user()->employee))
                 <x-nav-dropdown label="Performance" icon="bx-line-chart" :active="request()->routeIs('performance.*')">
                     @can('performance.view')
                         <x-nav-link :href="route('performance.cycles.index')" :active="request()->routeIs('performance.cycles.*')" icon="bx-refresh">
@@ -104,28 +116,36 @@
                 </x-nav-dropdown>
             @endif
 
-            @can('engagement.manage')
-                <x-nav-link :href="route('engagement.surveys.index')" :active="request()->routeIs('engagement.surveys.*')" icon="bx-message-square-detail">
-                    Engagement
-                </x-nav-link>
-            @endcan
-
-            <x-nav-link :href="route('cases.index')" :active="request()->routeIs('cases.*')" icon="bx-support">
-                {{ auth()->user()->can('cases.manage') ? 'Cases' : 'My Cases' }}
-            </x-nav-link>
-
-            @can('reports.view')
-                <x-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.*')" icon="bx-bar-chart-alt-2">
-                    Reports
-                </x-nav-link>
-            @endcan
-
-            <x-nav-dropdown label="Documents" icon="bx-file-blank" :active="request()->routeIs('documents.*')">
-                @can('esignature.send')
-                    <x-nav-link :href="route('documents.index')" :active="request()->routeIs('documents.index') || request()->routeIs('documents.show') || request()->routeIs('documents.create')" icon="bx-send">
-                        Sent Documents
+            @if ($enabledModules['engagement'])
+                @can('engagement.manage')
+                    <x-nav-link :href="route('engagement.surveys.index')" :active="request()->routeIs('engagement.surveys.*')" icon="bx-message-square-detail">
+                        Engagement
                     </x-nav-link>
                 @endcan
+            @endif
+
+            @if ($enabledModules['cases'])
+                <x-nav-link :href="route('cases.index')" :active="request()->routeIs('cases.*')" icon="bx-support">
+                    {{ auth()->user()->can('cases.manage') ? 'Cases' : 'My Cases' }}
+                </x-nav-link>
+            @endif
+
+            @if ($enabledModules['reports'])
+                @can('reports.view')
+                    <x-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.*')" icon="bx-bar-chart-alt-2">
+                        Reports
+                    </x-nav-link>
+                @endcan
+            @endif
+
+            <x-nav-dropdown label="Documents" icon="bx-file-blank" :active="request()->routeIs('documents.*')">
+                @if ($enabledModules['esignature'])
+                    @can('esignature.send')
+                        <x-nav-link :href="route('documents.index')" :active="request()->routeIs('documents.index') || request()->routeIs('documents.show') || request()->routeIs('documents.create')" icon="bx-send">
+                            Sent Documents
+                        </x-nav-link>
+                    @endcan
+                @endif
                 <x-nav-link :href="route('documents.signature.edit')" :active="request()->routeIs('documents.signature.edit')" icon="bx-pen">
                     My Signature
                 </x-nav-link>

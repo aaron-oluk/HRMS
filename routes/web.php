@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Web\Admin\StatutoryConfigController;
+use App\Http\Controllers\Web\Admin\SuperAdminController;
 use App\Http\Controllers\Web\Admin\TenantController;
 use App\Http\Controllers\Web\AttendanceController;
 use App\Http\Controllers\Web\AuditLogController;
@@ -15,6 +17,7 @@ use App\Http\Controllers\Web\EmploymentController;
 use App\Http\Controllers\Web\EntityController;
 use App\Http\Controllers\Web\GradeController;
 use App\Http\Controllers\Web\HrCaseController;
+use App\Http\Controllers\Web\ImpersonationController;
 use App\Http\Controllers\Web\InboxController;
 use App\Http\Controllers\Web\JobRequisitionController;
 use App\Http\Controllers\Web\LeaveController;
@@ -49,8 +52,19 @@ Route::get('/', function () {
 // this, via its own middleware rather than the role:/permission: ones used below,
 // since a super admin holds no tenant-scoped role at all.
 Route::middleware(['auth', 'super-admin'])->prefix('admin')->name('admin.')->group(function (): void {
-    Route::resource('tenants', TenantController::class)->only(['index', 'create', 'store']);
+    Route::resource('tenants', TenantController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update']);
+    Route::post('tenants/{tenant}/suspend', [TenantController::class, 'suspend'])->name('tenants.suspend');
+    Route::post('tenants/{tenant}/reactivate', [TenantController::class, 'reactivate'])->name('tenants.reactivate');
+    Route::post('tenants/{tenant}/impersonate', [TenantController::class, 'impersonate'])->name('tenants.impersonate');
+    Route::put('tenants/{tenant}/modules', [TenantController::class, 'updateModules'])->name('tenants.modules.update');
+    Route::resource('super-admins', SuperAdminController::class)->only(['index', 'create', 'store']);
+    Route::get('statutory', [StatutoryConfigController::class, 'edit'])->name('statutory.edit');
+    Route::put('statutory', [StatutoryConfigController::class, 'update'])->name('statutory.update');
 });
+
+// Stopping impersonation deliberately sits outside the super-admin middleware group above —
+// while impersonating, the authenticated user is the tenant's HR Admin, not a super admin.
+Route::middleware('auth')->post('/stop-impersonating', [ImpersonationController::class, 'stop'])->name('impersonation.stop');
 
 // Access control lives here, on the routes, rather than inside controllers/requests:
 // related routes are wrapped in a Route::middleware('role:RoleA|RoleB')->group() block
@@ -141,104 +155,110 @@ Route::middleware('auth')->group(function (): void {
     // 'create' must be registered before the index/show group's {payrollRun} wildcard route,
     // otherwise Laravel matches the literal "create" segment against it (same class of bug as
     // the employees resource above).
-    Route::middleware('role:HR Admin|HR Manager|Accountant')->group(function (): void {
-        Route::get('payroll/runs/create', [PayrollRunController::class, 'create'])->name('payroll.runs.create');
-        Route::post('payroll/runs', [PayrollRunController::class, 'store'])->name('payroll.runs.store');
-        Route::post('payroll/runs/{payrollRun}/submit', [PayrollRunController::class, 'submit'])->name('payroll.runs.submit');
-        Route::post('payroll/runs/{payrollRun}/disburse', [PayrollRunController::class, 'disburse'])->name('payroll.runs.disburse');
+    Route::middleware('tenant-module:payroll')->group(function (): void {
+        Route::middleware('role:HR Admin|HR Manager|Accountant')->group(function (): void {
+            Route::get('payroll/runs/create', [PayrollRunController::class, 'create'])->name('payroll.runs.create');
+            Route::post('payroll/runs', [PayrollRunController::class, 'store'])->name('payroll.runs.store');
+            Route::post('payroll/runs/{payrollRun}/submit', [PayrollRunController::class, 'submit'])->name('payroll.runs.submit');
+            Route::post('payroll/runs/{payrollRun}/disburse', [PayrollRunController::class, 'disburse'])->name('payroll.runs.disburse');
+        });
+
+        Route::middleware('role:HR Admin|HR Manager')->group(function (): void {
+            Route::post('payroll/runs/{payrollRun}/approve', [PayrollRunController::class, 'approve'])->name('payroll.runs.approve');
+        });
+
+        Route::middleware('role:HR Admin|HR Manager|Accountant|Auditor|Department Manager|Team Lead|Executive')->group(function (): void {
+            // Route::resource() only dot-converts a name that already contains dots — a bare
+            // slash like "payroll/runs" does NOT auto-namespace the route names (it silently
+            // names them "runs.index"/"runs.show"), so the base name must be set explicitly.
+            Route::resource('payroll/runs', PayrollRunController::class)
+                ->only(['index', 'show'])
+                ->parameters(['runs' => 'payrollRun'])
+                ->names('payroll.runs');
+        });
+
+        // Any authenticated employee may view their own payslips — ownership-based, no role gate.
+        Route::get('payroll/my-payslips', [PayrollRunController::class, 'mine'])->name('payroll.my-payslips');
     });
 
-    Route::middleware('role:HR Admin|HR Manager')->group(function (): void {
-        Route::post('payroll/runs/{payrollRun}/approve', [PayrollRunController::class, 'approve'])->name('payroll.runs.approve');
-    });
+    Route::middleware('tenant-module:recruitment')->group(function (): void {
+        // Same create-before-wildcard ordering requirement as above.
+        Route::middleware('role:HR Admin|HR Manager|HR Specialist')->group(function (): void {
+            Route::resource('recruitment/requisitions', JobRequisitionController::class)
+                ->only(['create', 'store', 'edit', 'update'])
+                ->parameters(['requisitions' => 'jobRequisition'])
+                ->names('recruitment.requisitions');
+        });
 
-    Route::middleware('role:HR Admin|HR Manager|Accountant|Auditor|Department Manager|Team Lead|Executive')->group(function (): void {
-        // Route::resource() only dot-converts a name that already contains dots — a bare
-        // slash like "payroll/runs" does NOT auto-namespace the route names (it silently
-        // names them "runs.index"/"runs.show"), so the base name must be set explicitly.
-        Route::resource('payroll/runs', PayrollRunController::class)
-            ->only(['index', 'show'])
-            ->parameters(['runs' => 'payrollRun'])
-            ->names('payroll.runs');
-    });
+        Route::middleware('role:HR Admin|HR Manager|HR Specialist|Department Manager|Auditor|Executive')->group(function (): void {
+            Route::resource('recruitment/requisitions', JobRequisitionController::class)
+                ->only(['index', 'show'])
+                ->parameters(['requisitions' => 'jobRequisition'])
+                ->names('recruitment.requisitions');
+        });
 
-    // Any authenticated employee may view their own payslips — ownership-based, no role gate.
-    Route::get('payroll/my-payslips', [PayrollRunController::class, 'mine'])->name('payroll.my-payslips');
-
-    // Same create-before-wildcard ordering requirement as above.
-    Route::middleware('role:HR Admin|HR Manager|HR Specialist')->group(function (): void {
-        Route::resource('recruitment/requisitions', JobRequisitionController::class)
-            ->only(['create', 'store', 'edit', 'update'])
-            ->parameters(['requisitions' => 'jobRequisition'])
-            ->names('recruitment.requisitions');
-    });
-
-    Route::middleware('role:HR Admin|HR Manager|HR Specialist|Department Manager|Auditor|Executive')->group(function (): void {
-        Route::resource('recruitment/requisitions', JobRequisitionController::class)
-            ->only(['index', 'show'])
-            ->parameters(['requisitions' => 'jobRequisition'])
-            ->names('recruitment.requisitions');
-    });
-
-    Route::middleware('role:HR Admin|HR Manager|HR Specialist')->group(function (): void {
-        Route::scopeBindings()->group(function (): void {
-            Route::post('recruitment/requisitions/{jobRequisition}/candidates', [CandidateController::class, 'store'])
-                ->name('recruitment.requisitions.candidates.store');
-            Route::post('recruitment/requisitions/{jobRequisition}/candidates/{candidate}/stage', [CandidateController::class, 'updateStage'])
-                ->name('recruitment.requisitions.candidates.stage');
+        Route::middleware('role:HR Admin|HR Manager|HR Specialist')->group(function (): void {
+            Route::scopeBindings()->group(function (): void {
+                Route::post('recruitment/requisitions/{jobRequisition}/candidates', [CandidateController::class, 'store'])
+                    ->name('recruitment.requisitions.candidates.store');
+                Route::post('recruitment/requisitions/{jobRequisition}/candidates/{candidate}/stage', [CandidateController::class, 'updateStage'])
+                    ->name('recruitment.requisitions.candidates.stage');
+            });
         });
     });
 
-    // Same create-before-wildcard ordering requirement as above.
-    Route::middleware('role:HR Admin|HR Manager')->group(function (): void {
-        Route::get('performance/cycles/create', [PerformanceReviewCycleController::class, 'create'])->name('performance.cycles.create');
-        Route::post('performance/cycles', [PerformanceReviewCycleController::class, 'store'])->name('performance.cycles.store');
-    });
-
-    Route::middleware('role:HR Admin|HR Manager|Department Manager|Team Lead')->group(function (): void {
-        Route::resource('performance/cycles', PerformanceReviewCycleController::class)
-            ->only(['index', 'show'])
-            ->parameters(['cycles' => 'performanceReviewCycle'])
-            ->names('performance.cycles');
-    });
-
-    // Any authenticated employee may view their own performance data — ownership-based, no role gate.
-    Route::get('performance/my', [PerformanceReviewController::class, 'mine'])->name('performance.my');
-
-    Route::scopeBindings()->group(function (): void {
-        // Any authenticated employee may submit their own self-review — ownership is
-        // enforced inside SubmitSelfReview itself, not by route-level role gating.
-        Route::post('performance/cycles/{cycle}/reviews/{review}/self', [PerformanceReviewController::class, 'submitSelf'])
-            ->name('performance.reviews.submit-self');
+    Route::middleware('tenant-module:performance')->group(function (): void {
+        // Same create-before-wildcard ordering requirement as above.
+        Route::middleware('role:HR Admin|HR Manager')->group(function (): void {
+            Route::get('performance/cycles/create', [PerformanceReviewCycleController::class, 'create'])->name('performance.cycles.create');
+            Route::post('performance/cycles', [PerformanceReviewCycleController::class, 'store'])->name('performance.cycles.store');
+        });
 
         Route::middleware('role:HR Admin|HR Manager|Department Manager|Team Lead')->group(function (): void {
-            Route::post('performance/cycles/{cycle}/reviews/{review}/manager', [PerformanceReviewController::class, 'submitManager'])
-                ->name('performance.reviews.submit-manager');
+            Route::resource('performance/cycles', PerformanceReviewCycleController::class)
+                ->only(['index', 'show'])
+                ->parameters(['cycles' => 'performanceReviewCycle'])
+                ->names('performance.cycles');
+        });
+
+        // Any authenticated employee may view their own performance data — ownership-based, no role gate.
+        Route::get('performance/my', [PerformanceReviewController::class, 'mine'])->name('performance.my');
+
+        Route::scopeBindings()->group(function (): void {
+            // Any authenticated employee may submit their own self-review — ownership is
+            // enforced inside SubmitSelfReview itself, not by route-level role gating.
+            Route::post('performance/cycles/{cycle}/reviews/{review}/self', [PerformanceReviewController::class, 'submitSelf'])
+                ->name('performance.reviews.submit-self');
+
+            Route::middleware('role:HR Admin|HR Manager|Department Manager|Team Lead')->group(function (): void {
+                Route::post('performance/cycles/{cycle}/reviews/{review}/manager', [PerformanceReviewController::class, 'submitManager'])
+                    ->name('performance.reviews.submit-manager');
+            });
+        });
+
+        // Goals are self-owned (like self-reviews) — any employee manages their own, ownership
+        // enforced inside UpsertGoal. Managers see their team's goals read-only via TeamScope
+        // on the cycle show page, no separate route needed for that.
+        Route::post('performance/goals', [PerformanceGoalController::class, 'store'])->name('performance.goals.store');
+        Route::put('performance/goals/{goal}', [PerformanceGoalController::class, 'update'])->name('performance.goals.update');
+
+        Route::middleware('role:HR Admin|HR Manager|Department Manager|Team Lead')->group(function (): void {
+            Route::post('performance/reviews/{review}/feedback-requests', [PeerFeedbackController::class, 'store'])
+                ->name('performance.feedback-requests.store');
+        });
+
+        // Submitting a nominated peer-feedback request is ownership-gated inside SubmitPeerFeedback
+        // (arbitrary peer relationship, not a hierarchy TeamScope can express) — no role middleware.
+        Route::post('performance/feedback-requests/{feedbackRequest}/submit', [PeerFeedbackController::class, 'submit'])
+            ->name('performance.feedback-requests.submit');
+
+        Route::middleware('role:HR Admin|HR Manager|Department Manager|Team Lead')->group(function (): void {
+            Route::post('performance/one-on-ones', [OneOnOneController::class, 'store'])->name('performance.one-on-ones.store');
+            Route::post('performance/one-on-ones/{meeting}/notes', [OneOnOneController::class, 'notes'])->name('performance.one-on-ones.notes');
         });
     });
 
-    // Goals are self-owned (like self-reviews) — any employee manages their own, ownership
-    // enforced inside UpsertGoal. Managers see their team's goals read-only via TeamScope
-    // on the cycle show page, no separate route needed for that.
-    Route::post('performance/goals', [PerformanceGoalController::class, 'store'])->name('performance.goals.store');
-    Route::put('performance/goals/{goal}', [PerformanceGoalController::class, 'update'])->name('performance.goals.update');
-
-    Route::middleware('role:HR Admin|HR Manager|Department Manager|Team Lead')->group(function (): void {
-        Route::post('performance/reviews/{review}/feedback-requests', [PeerFeedbackController::class, 'store'])
-            ->name('performance.feedback-requests.store');
-    });
-
-    // Submitting a nominated peer-feedback request is ownership-gated inside SubmitPeerFeedback
-    // (arbitrary peer relationship, not a hierarchy TeamScope can express) — no role middleware.
-    Route::post('performance/feedback-requests/{feedbackRequest}/submit', [PeerFeedbackController::class, 'submit'])
-        ->name('performance.feedback-requests.submit');
-
-    Route::middleware('role:HR Admin|HR Manager|Department Manager|Team Lead')->group(function (): void {
-        Route::post('performance/one-on-ones', [OneOnOneController::class, 'store'])->name('performance.one-on-ones.store');
-        Route::post('performance/one-on-ones/{meeting}/notes', [OneOnOneController::class, 'notes'])->name('performance.one-on-ones.notes');
-    });
-
-    Route::middleware('role:HR Admin|HR Manager|Auditor|Accountant|Executive')->prefix('reports')->name('reports.')->group(function (): void {
+    Route::middleware(['role:HR Admin|HR Manager|Auditor|Accountant|Executive', 'tenant-module:reports'])->prefix('reports')->name('reports.')->group(function (): void {
         Route::get('/', [ReportController::class, 'index'])->name('index');
         Route::get('headcount-by-department', [ReportController::class, 'headcountByDepartment'])->name('headcount-by-department');
         Route::get('leave-utilization', [ReportController::class, 'leaveUtilization'])->name('leave-utilization');
@@ -247,60 +267,68 @@ Route::middleware('auth')->group(function (): void {
         Route::get('recruitment-pipeline', [ReportController::class, 'recruitmentPipeline'])->name('recruitment-pipeline');
     });
 
-    // Any authenticated user may upload/view their own reusable signature image.
+    // Any authenticated user may upload/view their own reusable signature image — kept outside
+    // the esignature module gate below since it has no separate nav gate of its own (the "My
+    // Signature" link is always visible) and is harmless with no document-sending enabled.
     Route::post('profile/signature', [SignatureController::class, 'store'])->name('profile.signature.store');
     Route::get('profile/signature', [SignatureController::class, 'show'])->name('profile.signature.show');
-
-    // Same create-before-wildcard ordering requirement as above.
-    Route::middleware('role:HR Admin|HR Manager|HR Specialist')->group(function (): void {
-        Route::get('documents/create', [SignableDocumentController::class, 'create'])->name('documents.create');
-        Route::post('documents', [SignableDocumentController::class, 'store'])->name('documents.store');
-    });
 
     // 'signature' must also be registered before the documents/{document} wildcard below.
     Route::get('documents/signature', [SignatureController::class, 'edit'])->name('documents.signature.edit');
 
-    // index/show/page/download/sign are open to any authenticated user — the controller
-    // itself restricts to the uploader, the signer, or an esignature.send holder, since
-    // the same routes serve the sender's view and the signer's view.
-    Route::get('documents', [SignableDocumentController::class, 'index'])->name('documents.index');
-    Route::get('documents/{document}', [SignableDocumentController::class, 'show'])->name('documents.show');
-    Route::get('documents/{document}/page/{page}', [SignableDocumentController::class, 'page'])->name('documents.page');
-    Route::get('documents/{document}/download', [SignableDocumentController::class, 'download'])->name('documents.download');
-    Route::post('documents/{document}/sign', [SignableDocumentController::class, 'sign'])->name('documents.sign');
+    Route::middleware('tenant-module:esignature')->group(function (): void {
+        // Same create-before-wildcard ordering requirement as above.
+        Route::middleware('role:HR Admin|HR Manager|HR Specialist')->group(function (): void {
+            Route::get('documents/create', [SignableDocumentController::class, 'create'])->name('documents.create');
+            Route::post('documents', [SignableDocumentController::class, 'store'])->name('documents.store');
+        });
 
-    // Same create-before-wildcard ordering requirement as above.
-    Route::middleware('role:HR Admin|HR Manager')->group(function (): void {
-        Route::get('engagement/surveys/create', [SurveyController::class, 'create'])->name('engagement.surveys.create');
-        Route::post('engagement/surveys', [SurveyController::class, 'store'])->name('engagement.surveys.store');
-        Route::resource('engagement/surveys', SurveyController::class)
-            ->only(['index'])
-            ->parameters(['surveys' => 'survey'])
-            ->names('engagement.surveys');
+        // index/show/page/download/sign are open to any authenticated user — the controller
+        // itself restricts to the uploader, the signer, or an esignature.send holder, since
+        // the same routes serve the sender's view and the signer's view.
+        Route::get('documents', [SignableDocumentController::class, 'index'])->name('documents.index');
+        Route::get('documents/{document}', [SignableDocumentController::class, 'show'])->name('documents.show');
+        Route::get('documents/{document}/page/{page}', [SignableDocumentController::class, 'page'])->name('documents.page');
+        Route::get('documents/{document}/download', [SignableDocumentController::class, 'download'])->name('documents.download');
+        Route::post('documents/{document}/sign', [SignableDocumentController::class, 'sign'])->name('documents.sign');
     });
 
-    // Any authenticated employee can view a single survey — SurveyController::show()
-    // renders the response form for anyone who hasn't answered yet, and only reveals
-    // aggregate results to engagement.manage holders (the view itself gates that section).
-    Route::resource('engagement/surveys', SurveyController::class)
-        ->only(['show'])
-        ->parameters(['surveys' => 'survey'])
-        ->names('engagement.surveys');
+    Route::middleware('tenant-module:engagement')->group(function (): void {
+        // Same create-before-wildcard ordering requirement as above.
+        Route::middleware('role:HR Admin|HR Manager')->group(function (): void {
+            Route::get('engagement/surveys/create', [SurveyController::class, 'create'])->name('engagement.surveys.create');
+            Route::post('engagement/surveys', [SurveyController::class, 'store'])->name('engagement.surveys.store');
+            Route::resource('engagement/surveys', SurveyController::class)
+                ->only(['index'])
+                ->parameters(['surveys' => 'survey'])
+                ->names('engagement.surveys');
+        });
 
-    // Any authenticated employee may respond to a survey addressed to them — ownership
-    // (and the one-response-per-employee rule) is enforced inside SubmitSurveyResponse.
-    Route::post('engagement/surveys/{survey}/respond', [SurveyController::class, 'respond'])->name('engagement.surveys.respond');
+        // Any authenticated employee can view a single survey — SurveyController::show()
+        // renders the response form for anyone who hasn't answered yet, and only reveals
+        // aggregate results to engagement.manage holders (the view itself gates that section).
+        Route::resource('engagement/surveys', SurveyController::class)
+            ->only(['show'])
+            ->parameters(['surveys' => 'survey'])
+            ->names('engagement.surveys');
 
-    // Cases: open to every authenticated user (any employee can submit/view/comment on
-    // their own cases) — HR-wide visibility and assign/resolve are gated inside the
-    // controller/action by the cases.manage permission, not by route middleware, since
-    // the same routes serve both "my cases" and "all cases" depending on who's asking.
-    Route::resource('cases', HrCaseController::class)->only(['index', 'create', 'store', 'show']);
-    Route::post('cases/{case}/comment', [HrCaseController::class, 'comment'])->name('cases.comment');
+        // Any authenticated employee may respond to a survey addressed to them — ownership
+        // (and the one-response-per-employee rule) is enforced inside SubmitSurveyResponse.
+        Route::post('engagement/surveys/{survey}/respond', [SurveyController::class, 'respond'])->name('engagement.surveys.respond');
+    });
 
-    Route::middleware('role:HR Admin|HR Manager|HR Specialist')->group(function (): void {
-        Route::post('cases/{case}/assign', [HrCaseController::class, 'assign'])->name('cases.assign');
-        Route::post('cases/{case}/resolve', [HrCaseController::class, 'resolve'])->name('cases.resolve');
+    Route::middleware('tenant-module:cases')->group(function (): void {
+        // Cases: open to every authenticated user (any employee can submit/view/comment on
+        // their own cases) — HR-wide visibility and assign/resolve are gated inside the
+        // controller/action by the cases.manage permission, not by route middleware, since
+        // the same routes serve both "my cases" and "all cases" depending on who's asking.
+        Route::resource('cases', HrCaseController::class)->only(['index', 'create', 'store', 'show']);
+        Route::post('cases/{case}/comment', [HrCaseController::class, 'comment'])->name('cases.comment');
+
+        Route::middleware('role:HR Admin|HR Manager|HR Specialist')->group(function (): void {
+            Route::post('cases/{case}/assign', [HrCaseController::class, 'assign'])->name('cases.assign');
+            Route::post('cases/{case}/resolve', [HrCaseController::class, 'resolve'])->name('cases.resolve');
+        });
     });
 
     Route::scopeBindings()->group(function (): void {

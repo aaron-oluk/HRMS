@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\LeaveRequest;
 use App\Models\OvertimeRequest;
+use App\Models\TenantFeatureFlag;
 use App\Models\User;
 use App\Support\Approvals\TeamScope;
 use App\Support\Audit\AccessAudit;
@@ -67,6 +68,10 @@ class AppServiceProvider extends ServiceProvider
             $view->with('pendingOvertimeApprovalsCount', $pendingOvertimeApprovalsCount);
             $view->with('recentNotifications', $user ? $user->notifications()->latest()->limit(8)->get() : collect());
             $view->with('unreadNotificationsCount', $user?->unreadNotifications()->count() ?? 0);
+
+            $enabledModules = collect(TenantFeatureFlag::MODULES)
+                ->mapWithKeys(fn (string $module) => [$module => $user?->tenant?->hasModule($module) ?? true]);
+            $view->with('enabledModules', $enabledModules);
         });
     }
 }

@@ -40,4 +40,20 @@ class Tenant extends Model
     {
         return $this->hasMany(Employee::class);
     }
+
+    public function featureFlags(): HasMany
+    {
+        return $this->hasMany(TenantFeatureFlag::class);
+    }
+
+    /**
+     * A module with no row is enabled by default, so every existing tenant keeps working
+     * with zero migration data needed the moment a new flaggable module ships.
+     */
+    public function hasModule(string $module): bool
+    {
+        return $this->featureFlags
+            ->firstWhere('module', $module)
+            ?->enabled ?? true;
+    }
 }
