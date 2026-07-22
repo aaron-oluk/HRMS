@@ -17,6 +17,16 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            // Global bypasses every Gate check tenant-wide (see AppServiceProvider's
+            // Gate::before); Org Admin is scoped to specific tenants (see
+            // platform_admin_tenants, App\Models\User::canAccessTenant()).
+            $table->boolean('is_super_admin')->default(false);
+            $table->boolean('is_org_admin')->default(false);
+            $table->string('status')->default('active')->index();
+            $table->text('two_factor_secret')->nullable();
+            $table->text('two_factor_recovery_codes')->nullable();
+            $table->timestamp('two_factor_confirmed_at')->nullable();
+            $table->string('signature_path')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

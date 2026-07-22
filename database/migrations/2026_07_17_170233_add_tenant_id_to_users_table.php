@@ -6,12 +6,16 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Kept as its own migration (not folded into create_users_table) because of a genuine
+     * circular dependency: users.tenant_id references tenants, and tenants.created_by/
+     * updated_by reference users — one side has to be created first and the other added
+     * via ALTER once both tables exist.
+     */
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table): void {
             $table->foreignId('tenant_id')->nullable()->after('id')->constrained()->cascadeOnDelete();
-            $table->boolean('is_super_admin')->default(false)->after('tenant_id');
-            $table->string('status')->default('active')->after('password')->index();
         });
     }
 
@@ -19,7 +23,6 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table): void {
             $table->dropConstrainedForeignId('tenant_id');
-            $table->dropColumn(['is_super_admin', 'status']);
         });
     }
 };

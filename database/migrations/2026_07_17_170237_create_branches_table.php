@@ -12,6 +12,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
             $table->foreignId('entity_id')->constrained()->cascadeOnDelete();
+            // Nullable — Simple-structure tenants never set this (see Tenant::isSegmented()).
+            $table->foreignId('area_id')->nullable()->constrained()->nullOnDelete();
             $table->string('name');
             $table->string('code')->nullable();
             $table->text('address')->nullable();

@@ -2,35 +2,30 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     /**
      * Run the migrations.
+     *
+     * One row per tenant (unique tenant_id) — requirements vary per organization, so this is
+     * deliberately not a shared platform-wide singleton. Every tenant gets its own starting
+     * row via App\Actions\Tenancy\SeedDefaultStatutoryConfig, called from
+     * App\Actions\Tenancy\CreateTenant, not seeded here.
      */
     public function up(): void
     {
-        // A singleton row (id 1) — platform-wide statutory config, not per-tenant. There is
-        // exactly one country pack (Uganda), so there's nothing to key a per-tenant row off of.
-        Schema::create('statutory_settings', function (Blueprint $table) {
+        Schema::create('statutory_settings', function (Blueprint $table): void {
             $table->id();
+            $table->foreignId('tenant_id')->unique()->constrained()->cascadeOnDelete();
             $table->decimal('paye_surcharge_floor', 14, 2);
             $table->decimal('paye_surcharge_rate', 5, 4);
             $table->decimal('nssf_employee_rate', 5, 4);
             $table->decimal('nssf_employer_rate', 5, 4);
             $table->timestamps();
+            $table->userstamps();
         });
-
-        DB::table('statutory_settings')->insert([
-            'paye_surcharge_floor' => 10_000_000,
-            'paye_surcharge_rate' => 0.10,
-            'nssf_employee_rate' => 0.05,
-            'nssf_employer_rate' => 0.10,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
     }
 
     /**
