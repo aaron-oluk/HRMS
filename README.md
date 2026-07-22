@@ -1,60 +1,173 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Aloflux HRMS
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A multi-tenant Human Resource Management System built for Uganda-based organizations, covering the full employee lifecycle — from recruitment through payroll, attendance, performance, and offboarding — with statutory PAYE/NSSF calculations, role-based access control, and a full audit trail.
 
-## About Laravel
+## Tech stack
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+| Layer | Technology |
+|---|---|
+| Backend | PHP 8.2, Laravel 12 |
+| Database | PostgreSQL |
+| Frontend | Blade + Tailwind CSS v4 + Alpine.js |
+| Auth | Laravel Fortify (web), Laravel Sanctum (API) |
+| Authorization | spatie/laravel-permission (roles + permissions) |
+| Testing | Pest 3 / PHPUnit 11 |
+| Tooling | Laravel Boost (MCP dev tools), Laravel Pint |
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Features
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### Organization structure
+- Multi-entity (multi-company) tenants, with optional area/branch segmentation
+- Departments, positions, and grades
+- Custom theming per tenant
 
-## Learning Laravel
+### Employee records
+- Core profile: personal details, national ID/NSSF/TIN, photo, consent tracking
+- Employment history — effective-dated position/department/salary changes at the current company
+- **Prior work experience** — career history before joining, feeding into a computed total-tenure badge
+- Documents (contracts, national ID, certificates, achievements, other), bank accounts, mobile money accounts
+- Internal notes (HR-only)
+- **Warnings** — structured disciplinary records (verbal/written/final), with employee self-acknowledgement via a dedicated "My Warnings" page
+- **Insurance** — medical/life/dental policies tied to the employee, shown alongside Personal Information
+- Compensation items (allowances/benefits) feeding into payroll
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### Payroll
+- Payroll runs per entity/period, generated from active employments
+- Statutory PAYE and NSSF (employee + employer) calculated per Uganda's published bands
+- **Advances** — employee loans with a monthly repayment schedule that auto-decrements each payroll run until settled
+- **Deductions** — one-time or recurring deductions (e.g. union dues, damaged equipment), applied automatically and itemized on every payslip
+- Draft → pending approval → approved → disbursed workflow
+- Self-service payslip history ("My Payslips")
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Attendance & time off
+- Shift definitions, clock in/out (web + mobile API), daily attendance computation
+- Overtime requests with approval workflow
+- Leave types, leave requests, balances, and approvals
+- Public holiday calendar
 
-## Laravel Sponsors
+### Recruitment
+- Job requisitions tagged as **Career** or **Internship**
+- Candidate pipeline: Advertising → Review → Shortlisting → Interviews → Negotiations & Offers → Contracts & Appointments → Probation (plus Rejected)
+- PII-gated candidate contact details
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### Performance
+- Review cycles, self/manager reviews, peer feedback requests
+- 1:1 meetings
+- Performance goals ("targets at work")
 
-### Premium Partners
+### Engagement & cases
+- Employee engagement surveys with aggregate results
+- HR case management (grievances, requests) with comments and resolution tracking
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### E-signature
+- Send documents for signature, capture signatures, track completion
 
-## Contributing
+### Reports
+- Payroll cost summary, recruitment pipeline funnel, and other operational reports (CSV export supported)
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Platform administration
+- Super-admin tenant management and impersonation, independent of tenant-level RBAC
 
-## Code of Conduct
+## Role-based access control
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Permissions are split across two layers:
+- **Route-level**, enforced by role (e.g. `role:HR Admin|HR Manager`)
+- **View-level**, enforced by fine-grained Spatie permissions (`@can(...)` in Blade)
 
-## Security Vulnerabilities
+Default roles provisioned per tenant:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+| Role | Scope |
+|---|---|
+| HR Admin | Full HR + payroll + system administration |
+| HR Manager | Full HR operations tenant-wide, except system/user administration |
+| HR Specialist | HR operations, no payroll or salary visibility |
+| Department Manager | Scoped to their department |
+| Branch Manager | Scoped to their branch (segmented tenants only) |
+| Area Manager | Scoped to every branch under their area (segmented tenants only) |
+| Team Lead | Scoped to direct reports, read-only |
+| Auditor | Read-only, tenant-wide, including sensitive fields and access logs |
+| Accountant | Payroll run/disburse and financial data only |
+| Executive | Read-only, tenant-wide summaries |
+| Employee | Self-service only (own payslips, warnings, leave, attendance) |
 
-## License
+Tenants can also toggle optional modules on/off: `payroll`, `recruitment`, `performance`, `engagement`, `cases`, `reports`, `esignature`.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-# HRMS
+## Multi-tenancy
+
+Single database, `tenant_id`-scoped on every tenant-owned table via a global `TenantScope` + `BelongsToTenant` trait. The active tenant is resolved per-request by the `IdentifyTenant` middleware and held in a `TenantContext` singleton.
+
+## Getting started
+
+### Requirements
+- PHP 8.2+
+- Composer
+- PostgreSQL 15+
+- Node.js (for asset building)
+
+### Setup
+
+```bash
+composer install
+npm install
+
+cp .env.example .env
+php artisan key:generate
+```
+
+Edit `.env` and point `DB_*` at your local PostgreSQL instance (defaults to a database named `hrms`), then:
+
+```bash
+php artisan migrate --seed
+npm run build   # or `npm run dev` for a watching dev server
+php artisan serve
+```
+
+`composer run dev` will also boot the queue listener, log watcher (Pail), and Vite dev server together.
+
+### Demo data
+
+`php artisan migrate --seed` provisions a demo tenant with a full permission catalog and sample data across every module. All demo accounts use the password `password`:
+
+| Email | Role |
+|---|---|
+| admin@aloflux-demo.test | HR Admin |
+| manager@aloflux-demo.test | Team Lead |
+| dept-manager@aloflux-demo.test | Department Manager |
+| branch-manager@aloflux-demo.test | Branch Manager |
+| area-manager@aloflux-demo.test | Area Manager |
+| hr-manager@aloflux-demo.test | HR Manager |
+| hr-specialist@aloflux-demo.test | HR Specialist |
+| auditor@aloflux-demo.test | Auditor |
+| accountant@aloflux-demo.test | Accountant |
+| executive@aloflux-demo.test | Executive |
+| employee@aloflux-demo.test | Employee |
+
+### Rebuilding the database from scratch
+
+Since this is a pre-launch project, migrations may be edited in place rather than superseded by new ones. When in doubt, rebuild fully:
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+## Testing
+
+```bash
+php artisan test --compact
+```
+
+Tests run against an in-memory SQLite database (see `phpunit.xml`), so they never touch your local PostgreSQL dev database.
+
+## Code style
+
+```bash
+vendor/bin/pint --dirty --format agent
+```
+
+## API
+
+A versioned REST API is available under `/api/v1`, authenticated via Laravel Sanctum, intended for the companion mobile app and third-party integrations. Run `php artisan route:list --path=api` to see the full endpoint list.
+
+## Further documentation
+
+See [DOC.md](DOC.md) for the original system specification (architecture rationale, full RBAC permission matrix, non-functional requirements, and build phases).
