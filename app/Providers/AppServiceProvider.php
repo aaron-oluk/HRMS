@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\LeaveRequest;
 use App\Models\OvertimeRequest;
 use App\Models\TenantFeatureFlag;
+use App\Models\Theme;
 use App\Models\User;
 use App\Support\Approvals\TeamScope;
 use App\Support\Audit\AccessAudit;
@@ -72,6 +73,8 @@ class AppServiceProvider extends ServiceProvider
             $enabledModules = collect(TenantFeatureFlag::MODULES)
                 ->mapWithKeys(fn (string $module) => [$module => $user?->tenant?->hasModule($module) ?? true]);
             $view->with('enabledModules', $enabledModules);
+
+            $view->with('activeTheme', $user?->tenant?->activeTheme() ?? Theme::default());
         });
     }
 }

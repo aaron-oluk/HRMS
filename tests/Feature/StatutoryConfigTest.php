@@ -3,16 +3,20 @@
 use App\Models\StatutoryPayeBand;
 use App\Models\StatutorySetting;
 use App\Support\Payroll\StatutoryEngine;
+use App\Support\Tenancy\TenantContext;
+use Illuminate\Support\Facades\Route;
 
-test('a super admin can view the statutory configuration page', function () {
-    $this->actingAs(superAdmin())->get(route('admin.statutory.edit'))->assertOk();
-});
-
-test('a regular tenant user cannot view or edit statutory configuration', function () {
+test('an hr admin can view the organization statutory configuration page', function () {
     [, $admin] = tenantWithRole('HR Admin');
 
-    $this->actingAs($admin)->get(route('admin.statutory.edit'))->assertForbidden();
-    $this->actingAs($admin)->put(route('admin.statutory.update'), [
+    $this->actingAs($admin)->get(route('organization.edit'))->assertOk();
+});
+
+test('a role without org.manage cannot view or edit statutory configuration', function () {
+    [, $teamLead] = tenantWithRole('Team Lead');
+
+    $this->actingAs($teamLead)->get(route('organization.edit'))->assertForbidden();
+    $this->actingAs($teamLead)->put(route('organization.update-statutory'), [
         'bands' => [['floor' => 0, 'rate' => 0]],
         'paye_surcharge_floor' => 10_000_000,
         'paye_surcharge_rate' => 0.10,
@@ -21,11 +25,17 @@ test('a regular tenant user cannot view or edit statutory configuration', functi
     ])->assertForbidden();
 });
 
-test('editing the PAYE bands changes what StatutoryEngine calculates', function () {
-    $engine = new StatutoryEngine;
-    $before = $engine->payeFor(300_000);
+test('the old platform-admin statutory route no longer exists', function () {
+    expect(Route::has('admin.statutory.edit'))->toBeFalse();
+});
 
-    $this->actingAs(superAdmin())->put(route('admin.statutory.update'), [
+test('editing the PAYE bands changes what StatutoryEngine calculates', function () {
+    [$tenant, $admin] = tenantWithRole('HR Admin');
+    app(TenantContext::class)->set($tenant);
+
+    $before = (new StatutoryEngine)->payeFor(300_000);
+
+    $this->actingAs($admin)->put(route('organization.update-statutory'), [
         'bands' => [
             ['floor' => 0, 'rate' => 0],
             ['floor' => 300_000, 'rate' => 0.50],
@@ -34,7 +44,7 @@ test('editing the PAYE bands changes what StatutoryEngine calculates', function 
         'paye_surcharge_rate' => 0.10,
         'nssf_employee_rate' => 0.05,
         'nssf_employer_rate' => 0.10,
-    ])->assertRedirect(route('admin.statutory.edit'));
+    ])->assertRedirect(route('organization.edit'));
 
     expect(StatutoryPayeBand::count())->toBe(2);
 
@@ -44,7 +54,10 @@ test('editing the PAYE bands changes what StatutoryEngine calculates', function 
 });
 
 test('editing NSSF rates changes what StatutoryEngine calculates', function () {
-    $this->actingAs(superAdmin())->put(route('admin.statutory.update'), [
+    [$tenant, $admin] = tenantWithRole('HR Admin');
+    app(TenantContext::class)->set($tenant);
+
+    $this->actingAs($admin)->put(route('organization.update-statutory'), [
         'bands' => [['floor' => 0, 'rate' => 0]],
         'paye_surcharge_floor' => 10_000_000,
         'paye_surcharge_rate' => 0.10,
@@ -60,6 +73,9 @@ test('editing NSSF rates changes what StatutoryEngine calculates', function () {
 });
 
 test('StatutoryEngine only queries the database once per instance across many employees', function () {
+    [$tenant] = tenantWithRole('HR Admin');
+    app(TenantContext::class)->set($tenant);
+
     $engine = new StatutoryEngine;
 
     $engine->payeFor(300_000);
@@ -74,4 +90,27 @@ test('StatutoryEngine only queries the database once per instance across many em
     $secondCall = $engine->payeFor(300_000);
 
     expect($secondCall)->toBe($firstCall);
+});
+
+test('two tenants have completely independent statutory configuration', function () {
+    [$tenantA, $adminA] = tenantWithRole('HR Admin');
+    [$tenantB] = tenantWithRole('HR Admin');
+
+    app(TenantContext::class)->set($tenantA);
+    $beforeB = StatutorySetting::current()->nssf_employee_rate;
+
+    $this->actingAs($adminA)->put(route('organization.update-statutory'), [
+        'bands' => [['floor' => 0, 'rate' => 0]],
+        'paye_surcharge_floor' => 10_000_000,
+        'paye_surcharge_rate' => 0.10,
+        'nssf_employee_rate' => 0.25,
+        'nssf_employer_rate' => 0.10,
+    ]);
+
+    app(TenantContext::class)->set($tenantA);
+    expect(StatutorySetting::current()->nssf_employee_rate)->toEqualWithDelta(0.25, 0.0001);
+
+    app(TenantContext::class)->set($tenantB);
+    expect(StatutorySetting::current()->nssf_employee_rate)->toEqualWithDelta((float) $beforeB, 0.0001);
+    expect(StatutoryPayeBand::count())->toBe(4);
 });

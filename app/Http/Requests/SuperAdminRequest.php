@@ -21,6 +21,9 @@ class SuperAdminRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')],
             'password' => ['required', 'string', 'min:8'],
+            'tier' => ['required', 'string', 'in:global,org'],
+            'tenant_ids' => ['required_if:tier,org', 'array'],
+            'tenant_ids.*' => ['integer', 'exists:tenants,id'],
         ];
     }
 }

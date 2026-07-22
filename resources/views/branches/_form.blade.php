@@ -11,6 +11,19 @@
         <x-input-error :messages="$errors->get('entity_id')" class="mt-1" />
     </div>
 
+    @if (auth()->user()->tenant?->isSegmented())
+        <div class="sm:col-span-2">
+            <x-label for="area_id" value="Area" />
+            <x-select id="area_id" name="area_id" class="mt-1">
+                <option value="">— None —</option>
+                @foreach ($areas as $area)
+                    <option value="{{ $area->id }}" @selected(old('area_id', $branch?->area_id) == $area->id)>{{ $area->name }}</option>
+                @endforeach
+            </x-select>
+            <x-input-error :messages="$errors->get('area_id')" class="mt-1" />
+        </div>
+    @endif
+
     <div>
         <x-label for="name" value="Name" />
         <x-input id="name" name="name" :value="old('name', $branch?->name)" required class="mt-1" />

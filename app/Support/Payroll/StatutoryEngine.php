@@ -7,18 +7,17 @@ use App\Models\StatutorySetting;
 use Illuminate\Support\Collection;
 
 /**
- * Uganda statutory payroll calculations ("Country Pack v1" per DOC.md §3.9).
+ * Statutory payroll calculations, configured per tenant (see App\Models\StatutoryPayeBand /
+ * App\Models\StatutorySetting, editable at /organization/statutory) since requirements vary by
+ * organization — there is no shared platform-wide country pack. Both models use
+ * App\Models\Concerns\BelongsToTenant, so every query below is automatically scoped to the
+ * current tenant with no explicit tenant_id filtering needed here.
  *
- * DOC.md only supplies two anchor points for PAYE — a 235,000 UGX/month free threshold and a
- * 40% top marginal rate for high incomes — without the full band table. The bands (loaded from
- * the statutory_paye_bands/statutory_settings tables, editable at /admin/statutory) are Uganda's
- * standard published monthly PAYE schedule (Income Tax Act, employment income), and land on
- * exactly those two anchors: the first band is 0% up to 235,000, and the 30% top band plus a
- * 10% surcharge above 10,000,000/month works out to the 40% marginal DOC describes.
- *
- * Local Service Tax is out of scope: DOC.md describes it only as "configurable band table per
- * local authority" with no actual figures given anywhere, so it isn't computed here rather than
- * fabricating numbers and presenting them as authoritative.
+ * New tenants start from Uganda's standard published monthly PAYE schedule (Income Tax Act,
+ * employment income) via App\Actions\Tenancy\SeedDefaultStatutoryConfig, matching the two
+ * anchor points DOC.md §3.9 gives (235,000 UGX/month free threshold, 40% top marginal rate —
+ * the latter being the 30% top band plus a 10% surcharge above 10,000,000/month) — but any
+ * tenant may edit its own copy from there.
  *
  * This is constructor-injected once per GeneratePayrollRun::handle() call and reused across
  * every employee in that run's loop, so the bands/settings are loaded from the database once

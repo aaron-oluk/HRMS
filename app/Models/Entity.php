@@ -36,6 +36,11 @@ class Entity extends Model
         return $this->hasMany(Branch::class);
     }
 
+    public function areas(): HasMany
+    {
+        return $this->hasMany(Area::class);
+    }
+
     public function departments(): HasMany
     {
         return $this->hasMany(Department::class);

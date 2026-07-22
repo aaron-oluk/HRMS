@@ -1,7 +1,9 @@
 <x-layouts.admin title="Companies" header="Companies">
-    <div class="mb-4 flex justify-end">
-        <a href="{{ route('admin.tenants.create') }}"><x-button icon="bx-plus">Onboard a company</x-button></a>
-    </div>
+    @if (auth()->user()->is_super_admin)
+        <div class="mb-4 flex justify-end">
+            <a href="{{ route('admin.tenants.create') }}"><x-button icon="bx-plus">Onboard a company</x-button></a>
+        </div>
+    @endif
 
     <x-card class="!p-0 overflow-x-auto">
         <table class="min-w-full divide-y divide-slate-100 text-sm">

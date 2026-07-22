@@ -9,6 +9,8 @@ use App\Http\Requests\EmployeeRequest;
 use App\Models\Employee;
 use App\Models\Entity;
 use App\Models\LeaveType;
+use App\Models\User;
+use App\Support\Approvals\TeamScope;
 use App\Support\Audit\AccessAudit;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -17,9 +19,21 @@ use Illuminate\Support\Carbon;
 
 class EmployeeController extends Controller
 {
+    /**
+     * Branch/Area Manager (see App\Support\Approvals\TeamScope) are the only roles whose
+     * visibility here is restricted to a location — every other role (Department Manager,
+     * Team Lead, etc.) deliberately keeps its existing tenant-wide view unchanged.
+     *
+     * @var list<string>
+     */
+    private const LOCATION_SCOPED_ROLES = ['Branch Manager', 'Area Manager'];
+
+    public function __construct(protected TeamScope $teamScope) {}
+
     public function index(Request $request): View
     {
         $search = $request->string('q')->trim()->toString();
+        $actor = $request->user();
 
         $employees = Employee::with('currentEmployment.position', 'entity')
             ->when($search !== '', fn ($query) => $query->where(fn ($q) => $q
@@ -27,11 +41,34 @@ class EmployeeController extends Controller
                 ->orWhere('last_name', 'like', "%{$search}%")
                 ->orWhere('employee_number', 'like', "%{$search}%")
             ))
+            ->when(
+                $actor->hasRole(self::LOCATION_SCOPED_ROLES),
+                fn ($query) => $this->teamScope->scopeToTeam($query, $actor, 'id')
+            )
             ->latest()
             ->paginate(15)
             ->withQueryString();
 
-        return view('employees.index', ['employees' => $employees, 'search' => $search]);
+        return view('employees.index', [
+            'employees' => $employees,
+            'search' => $search,
+            'locationScopeLabel' => $this->locationScopeLabel($actor),
+        ]);
+    }
+
+    private function locationScopeLabel(User $actor): ?string
+    {
+        $employment = $actor->employee?->currentEmployment;
+
+        if ($actor->hasRole('Branch Manager')) {
+            return $employment?->branch?->name;
+        }
+
+        if ($actor->hasRole('Area Manager')) {
+            return $employment?->branch?->area?->name;
+        }
+
+        return null;
     }
 
     public function create(): View

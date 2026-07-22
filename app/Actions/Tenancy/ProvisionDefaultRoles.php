@@ -133,6 +133,43 @@ class ProvisionDefaultRoles
             'performance.view',
             'performance.review',
         ],
+        // Segmented-structure only (see Tenant::isSegmented()) — scoped to their own branch
+        // (see TeamScope), derived from their own currentEmployment->branch_id. Meaningless
+        // on a Simple-structure tenant, same precedent as the "Executive" bonus role below.
+        'Branch Manager' => [
+            'org.view',
+            'employees.view',
+            'employees.update',
+            'employees.view-documents',
+            'employees.manage-documents',
+            'employees.view-notes',
+            'employees.manage-notes',
+            'leave.approve',
+            'attendance.manage-shifts',
+            'attendance.approve-overtime',
+            'attendance.view-team',
+            'payroll.view-team-summary',
+            'performance.view',
+            'performance.review',
+        ],
+        // Segmented-structure only — scoped to every branch under their own area (see
+        // TeamScope), derived from their own currentEmployment->branch->area_id.
+        'Area Manager' => [
+            'org.view',
+            'employees.view',
+            'employees.update',
+            'employees.view-documents',
+            'employees.manage-documents',
+            'employees.view-notes',
+            'employees.manage-notes',
+            'leave.approve',
+            'attendance.manage-shifts',
+            'attendance.approve-overtime',
+            'attendance.view-team',
+            'payroll.view-team-summary',
+            'performance.view',
+            'performance.review',
+        ],
         // Scoped to direct reports only (see TeamScope); view-only, no edit rights.
         'Team Lead' => [
             'employees.view',

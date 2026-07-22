@@ -2,11 +2,20 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
+use App\Models\Concerns\BelongsToTenant;
+use App\Models\Concerns\Userstamped;
+use Database\Factories\StatutorySettingFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class StatutorySetting extends Model
 {
+    /** @use HasFactory<StatutorySettingFactory> */
+    use Auditable, BelongsToTenant, HasFactory, Userstamped;
+
     protected $fillable = [
+        'tenant_id',
         'paye_surcharge_floor',
         'paye_surcharge_rate',
         'nssf_employee_rate',
@@ -24,7 +33,8 @@ class StatutorySetting extends Model
     }
 
     /**
-     * The table is a singleton — one row, id 1, seeded by its migration.
+     * One row per tenant (unique tenant_id) — the tenant scope on BelongsToTenant means this
+     * always resolves the current tenant's row without needing an explicit where().
      */
     public static function current(): self
     {

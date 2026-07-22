@@ -1,8 +1,9 @@
 <?php
 
-use App\Http\Controllers\Web\Admin\StatutoryConfigController;
 use App\Http\Controllers\Web\Admin\SuperAdminController;
 use App\Http\Controllers\Web\Admin\TenantController;
+use App\Http\Controllers\Web\Admin\ThemeController;
+use App\Http\Controllers\Web\AreaController;
 use App\Http\Controllers\Web\AttendanceController;
 use App\Http\Controllers\Web\AuditLogController;
 use App\Http\Controllers\Web\BranchController;
@@ -26,6 +27,7 @@ use App\Http\Controllers\Web\LeaveController;
 use App\Http\Controllers\Web\LeaveTypeController;
 use App\Http\Controllers\Web\NotificationController;
 use App\Http\Controllers\Web\OneOnOneController;
+use App\Http\Controllers\Web\OrganizationController;
 use App\Http\Controllers\Web\PayrollRunController;
 use App\Http\Controllers\Web\PeerFeedbackController;
 use App\Http\Controllers\Web\PerformanceGoalController;
@@ -46,22 +48,37 @@ Route::get('/', function () {
         return view('landing');
     }
 
-    return redirect()->route(request()->user()->is_super_admin ? 'admin.tenants.index' : 'dashboard');
+    return redirect()->route(request()->user()->isPlatformAdmin() ? 'admin.tenants.index' : 'dashboard');
 })->name('landing');
 
 // The platform admin console: onboarding a new company (tenant) is deliberately not
-// self-service (see App\Actions\Tenancy\CreateTenant) — only a super admin reaches
-// this, via its own middleware rather than the role:/permission: ones used below,
-// since a super admin holds no tenant-scoped role at all.
-Route::middleware(['auth', 'super-admin'])->prefix('admin')->name('admin.')->group(function (): void {
-    Route::resource('tenants', TenantController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update']);
-    Route::post('tenants/{tenant}/suspend', [TenantController::class, 'suspend'])->name('tenants.suspend');
-    Route::post('tenants/{tenant}/reactivate', [TenantController::class, 'reactivate'])->name('tenants.reactivate');
-    Route::post('tenants/{tenant}/impersonate', [TenantController::class, 'impersonate'])->name('tenants.impersonate');
-    Route::put('tenants/{tenant}/modules', [TenantController::class, 'updateModules'])->name('tenants.modules.update');
-    Route::resource('super-admins', SuperAdminController::class)->only(['index', 'create', 'store']);
-    Route::get('statutory', [StatutoryConfigController::class, 'edit'])->name('statutory.edit');
-    Route::put('statutory', [StatutoryConfigController::class, 'update'])->name('statutory.update');
+// self-service (see App\Actions\Tenancy\CreateTenant) — reached only by a platform admin
+// (Global super admin or a scoped Org Admin, see App\Models\User::isPlatformAdmin()), via
+// its own middleware rather than the role:/permission: ones used below, since neither tier
+// holds a tenant-scoped role at all.
+Route::middleware(['auth', 'platform-admin'])->prefix('admin')->name('admin.')->group(function (): void {
+    // Listing is shared by both tiers — Admin\TenantController@index filters the list to
+    // assignedTenants for a scoped Org Admin, and shows everything for a Global admin.
+    Route::resource('tenants', TenantController::class)->only(['index']);
+
+    // Onboarding a new company and managing other platform admins are Global-only — an Org
+    // Admin never creates tenants or grants/revokes anyone else's platform access.
+    Route::middleware('super-admin')->group(function (): void {
+        Route::resource('tenants', TenantController::class)->only(['create', 'store']);
+        Route::resource('super-admins', SuperAdminController::class)->only(['index', 'create', 'store']);
+        Route::resource('themes', ThemeController::class)->except(['show']);
+    });
+
+    // Everything below acts on one specific tenant — a Global admin always passes; an Org
+    // Admin only passes for tenants explicitly assigned to them (see
+    // App\Http\Middleware\EnsureAdminCanAccessTenant).
+    Route::middleware('admin-tenant-access')->group(function (): void {
+        Route::resource('tenants', TenantController::class)->only(['show', 'edit', 'update']);
+        Route::post('tenants/{tenant}/suspend', [TenantController::class, 'suspend'])->name('tenants.suspend');
+        Route::post('tenants/{tenant}/reactivate', [TenantController::class, 'reactivate'])->name('tenants.reactivate');
+        Route::post('tenants/{tenant}/impersonate', [TenantController::class, 'impersonate'])->name('tenants.impersonate');
+        Route::put('tenants/{tenant}/modules', [TenantController::class, 'updateModules'])->name('tenants.modules.update');
+    });
 });
 
 // Stopping impersonation deliberately sits outside the super-admin middleware group above —
@@ -90,6 +107,7 @@ Route::middleware('auth')->group(function (): void {
 
     Route::middleware('role:HR Admin|HR Manager|HR Specialist|Department Manager|Auditor|Executive')->group(function (): void {
         Route::resource('entities', EntityController::class)->only(['index']);
+        Route::resource('areas', AreaController::class)->only(['index']);
         Route::resource('branches', BranchController::class)->only(['index']);
         Route::resource('departments', DepartmentController::class)->only(['index']);
         Route::resource('positions', PositionController::class)->only(['index']);
@@ -100,6 +118,7 @@ Route::middleware('auth')->group(function (): void {
 
     Route::middleware('role:HR Admin|HR Manager')->group(function (): void {
         Route::resource('entities', EntityController::class)->only(['create', 'store', 'edit', 'update', 'destroy']);
+        Route::resource('areas', AreaController::class)->only(['create', 'store', 'edit', 'update', 'destroy']);
         Route::resource('branches', BranchController::class)->only(['create', 'store', 'edit', 'update', 'destroy']);
         Route::resource('departments', DepartmentController::class)->only(['create', 'store', 'edit', 'update', 'destroy']);
         Route::resource('positions', PositionController::class)->only(['create', 'store', 'edit', 'update', 'destroy']);
@@ -108,6 +127,14 @@ Route::middleware('auth')->group(function (): void {
 
     Route::middleware('role:HR Admin')->group(function (): void {
         Route::resource('users', UserController::class)->except(['show', 'destroy']);
+    });
+
+    Route::middleware('role:HR Admin|HR Manager')->prefix('organization')->name('organization.')->group(function (): void {
+        Route::get('/', [OrganizationController::class, 'edit'])->name('edit');
+        Route::put('general', [OrganizationController::class, 'updateGeneral'])->name('update-general');
+        Route::put('statutory', [OrganizationController::class, 'updateStatutory'])->name('update-statutory');
+        Route::put('structure', [OrganizationController::class, 'updateStructure'])->name('update-structure');
+        Route::put('theme', [OrganizationController::class, 'updateTheme'])->name('update-theme');
     });
 
     // Order matters here: 'create' (GET /employees/create) must be registered before
@@ -124,7 +151,7 @@ Route::middleware('auth')->group(function (): void {
         Route::resource('employees', EmployeeController::class)->only(['edit', 'update']);
     });
 
-    Route::middleware('role:HR Admin|HR Manager|HR Specialist|Department Manager|Team Lead|Auditor|Accountant|Executive')->group(function (): void {
+    Route::middleware('role:HR Admin|HR Manager|HR Specialist|Department Manager|Branch Manager|Area Manager|Team Lead|Auditor|Accountant|Executive')->group(function (): void {
         Route::resource('employees', EmployeeController::class)->only(['index', 'show']);
     });
 

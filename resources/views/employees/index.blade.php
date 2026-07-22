@@ -1,4 +1,11 @@
 <x-layouts.app title="Employees" header="Employees">
+    @if ($locationScopeLabel)
+        <div class="mb-4 flex items-center gap-x-2 rounded-md bg-blue-50 px-4 py-2.5 text-sm text-blue-700 ring-1 ring-inset ring-blue-600/20">
+            <i class="bx bx-map-pin text-base"></i>
+            Showing employees in <span class="font-medium">{{ $locationScopeLabel }}</span>
+        </div>
+    @endif
+
     <div class="mb-4 flex items-center justify-between gap-x-4">
         <form method="GET" class="w-full max-w-xs">
             <x-search-input name="q" :value="$search" placeholder="Search by name or employee #" />

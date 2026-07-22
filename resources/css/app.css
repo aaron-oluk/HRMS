@@ -6,9 +6,23 @@
 @source '../**/*.blade.php';
 @source '../**/*.js';
 
+/*
+ * Multi-tenant theming (see App\Models\Theme): only these 6 emerald shades and the sans
+ * font stack are actually referenced anywhere in the app, so only these tokens are made
+ * overridable — each falls back to Tailwind's own default value via var(--theme-*, default),
+ * so a tenant with no theme picked renders byte-for-byte identical to before this existed.
+ * The active theme's values are injected as CSS custom properties on :root by a small
+ * inline <style> block in components/layouts/app.blade.php.
+ */
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --color-emerald-50: var(--theme-50, oklch(97.9% 0.021 166.113));
+    --color-emerald-100: var(--theme-100, oklch(95% 0.052 163.051));
+    --color-emerald-500: var(--theme-500, oklch(69.6% 0.17 162.48));
+    --color-emerald-600: var(--theme-600, oklch(59.6% 0.145 163.225));
+    --color-emerald-700: var(--theme-700, oklch(50.8% 0.118 165.612));
+    --color-emerald-800: var(--theme-800, oklch(43.2% 0.095 166.913));
+    --font-sans: var(--theme-font, 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji');
 }
 
 [x-cloak] {

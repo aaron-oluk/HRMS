@@ -4,8 +4,12 @@ use App\Actions\Payroll\GeneratePayrollRun;
 use App\Models\Entity;
 use App\Models\PayrollRun;
 use App\Support\Payroll\StatutoryEngine;
+use App\Support\Tenancy\TenantContext;
 
 test('the statutory engine computes PAYE and NSSF against DOC.md\'s published anchors', function () {
+    [$tenant] = tenantWithRole('HR Admin');
+    app(TenantContext::class)->set($tenant);
+
     $engine = new StatutoryEngine;
 
     // Below the 235,000 free threshold: no PAYE.

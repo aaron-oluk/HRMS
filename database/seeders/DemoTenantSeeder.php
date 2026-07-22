@@ -15,6 +15,9 @@ use App\Actions\Performance\ScheduleOneOnOne;
 use App\Actions\Performance\SubmitManagerReview;
 use App\Actions\Performance\SubmitSelfReview;
 use App\Actions\Tenancy\ProvisionDefaultRoles;
+use App\Actions\Tenancy\SeedDefaultStatutoryConfig;
+use App\Models\Area;
+use App\Models\Branch;
 use App\Models\ClockEvent;
 use App\Models\Department;
 use App\Models\Employee;
@@ -31,8 +34,10 @@ use App\Models\PerformanceReviewCycle;
 use App\Models\Position;
 use App\Models\Shift;
 use App\Models\SignableDocument;
+use App\Models\StatutoryPayeBand;
 use App\Models\Survey;
 use App\Models\Tenant;
+use App\Models\Theme;
 use App\Models\User;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Database\Seeder;
@@ -47,12 +52,22 @@ class DemoTenantSeeder extends Seeder
     {
         $tenant = Tenant::firstOrCreate(
             ['slug' => 'aloflux-demo'],
-            ['name' => 'Aloflux Demo Ltd', 'status' => 'active', 'timezone' => 'Africa/Kampala', 'currency' => 'UGX']
+            [
+                'name' => 'Aloflux Demo Ltd', 'status' => 'active', 'timezone' => 'Africa/Kampala', 'currency' => 'UGX',
+                // Segmented + a non-default theme, so both new features are visible out of
+                // the box rather than only reachable by manually opting in after seeding.
+                'structure' => 'segmented',
+                'theme_id' => Theme::where('slug', 'ocean')->value('id'),
+            ]
         );
 
         app(TenantContext::class)->set($tenant);
 
         $roles = app(ProvisionDefaultRoles::class)->handle($tenant);
+
+        if (! StatutoryPayeBand::where('tenant_id', $tenant->id)->exists()) {
+            app(SeedDefaultStatutoryConfig::class)->handle($tenant);
+        }
 
         $entity = Entity::firstOrCreate(
             ['tenant_id' => $tenant->id, 'name' => 'Aloflux Demo Ltd'],
@@ -85,6 +100,24 @@ class DemoTenantSeeder extends Seeder
         $grade = Grade::firstOrCreate(
             ['tenant_id' => $tenant->id, 'entity_id' => $entity->id, 'name' => 'Grade 5'],
             ['level' => 5, 'min_salary' => 1500000, 'max_salary' => 3500000]
+        );
+
+        // Segmented-structure demo data: one Area grouping two Branches, so the Area/Branch
+        // Manager roles and the location-restricted employee search have something real to
+        // scope against out of the box.
+        $centralArea = Area::firstOrCreate(
+            ['tenant_id' => $tenant->id, 'entity_id' => $entity->id, 'name' => 'Central Region'],
+            ['code' => 'CENTRAL']
+        );
+
+        $kampalaBranch = Branch::firstOrCreate(
+            ['tenant_id' => $tenant->id, 'entity_id' => $entity->id, 'name' => 'Kampala Branch'],
+            ['code' => 'KLA', 'area_id' => $centralArea->id, 'address' => 'Plot 14, Acacia Avenue, Kampala']
+        );
+
+        $entebbeBranch = Branch::firstOrCreate(
+            ['tenant_id' => $tenant->id, 'entity_id' => $entity->id, 'name' => 'Entebbe Branch'],
+            ['code' => 'EBB', 'area_id' => $centralArea->id, 'address' => 'Berkeley Road, Entebbe']
         );
 
         $hrAdminEmployee = Employee::firstOrCreate(
@@ -231,6 +264,90 @@ class DemoTenantSeeder extends Seeder
             ]
         );
         $deptManager->syncRoles([$roles['Department Manager']]);
+
+        $branchManagerEmployee = Employee::firstOrCreate(
+            ['tenant_id' => $tenant->id, 'employee_number' => 'EMP-00004'],
+            [
+                'entity_id' => $entity->id,
+                'first_name' => 'Tom',
+                'last_name' => 'Byaruhanga',
+                'gender' => 'male',
+                'date_of_birth' => '1987-06-15',
+                'phone' => '+256700000004',
+                'personal_email' => 'tom.byaruhanga@example.com',
+                'nationality' => 'Ugandan',
+                'status' => 'active',
+            ]
+        );
+
+        Employment::firstOrCreate(
+            ['tenant_id' => $tenant->id, 'employee_id' => $branchManagerEmployee->id, 'effective_to' => null],
+            [
+                'entity_id' => $entity->id,
+                'branch_id' => $kampalaBranch->id,
+                'department_id' => $departments['Sales']->id,
+                'position_id' => $positions['Sales Executive']->id,
+                'grade_id' => $grade->id,
+                'basic_salary' => 2400000,
+                'effective_from' => now()->subYear()->toDateString(),
+                'status' => 'active',
+                'reason' => 'initial',
+            ]
+        );
+
+        $branchManager = User::firstOrCreate(
+            ['email' => 'branch-manager@aloflux-demo.test'],
+            [
+                'tenant_id' => $tenant->id,
+                'employee_id' => $branchManagerEmployee->id,
+                'name' => 'Tom Byaruhanga',
+                'password' => 'password',
+                'status' => 'active',
+            ]
+        );
+        $branchManager->syncRoles([$roles['Branch Manager']]);
+
+        $areaManagerEmployee = Employee::firstOrCreate(
+            ['tenant_id' => $tenant->id, 'employee_number' => 'EMP-00005'],
+            [
+                'entity_id' => $entity->id,
+                'first_name' => 'Irene',
+                'last_name' => 'Katusiime',
+                'gender' => 'female',
+                'date_of_birth' => '1984-02-28',
+                'phone' => '+256700000005',
+                'personal_email' => 'irene.katusiime@example.com',
+                'nationality' => 'Ugandan',
+                'status' => 'active',
+            ]
+        );
+
+        Employment::firstOrCreate(
+            ['tenant_id' => $tenant->id, 'employee_id' => $areaManagerEmployee->id, 'effective_to' => null],
+            [
+                'entity_id' => $entity->id,
+                'branch_id' => $entebbeBranch->id,
+                'department_id' => $departments['Sales']->id,
+                'position_id' => $positions['Sales Executive']->id,
+                'grade_id' => $grade->id,
+                'basic_salary' => 2900000,
+                'effective_from' => now()->subYears(2)->toDateString(),
+                'status' => 'active',
+                'reason' => 'initial',
+            ]
+        );
+
+        $areaManager = User::firstOrCreate(
+            ['email' => 'area-manager@aloflux-demo.test'],
+            [
+                'tenant_id' => $tenant->id,
+                'employee_id' => $areaManagerEmployee->id,
+                'name' => 'Irene Katusiime',
+                'password' => 'password',
+                'status' => 'active',
+            ]
+        );
+        $areaManager->syncRoles([$roles['Area Manager']]);
 
         $financeEmployee = Employee::factory()->for($entity)->create(['tenant_id' => $tenant->id]);
         Employment::factory()->create([

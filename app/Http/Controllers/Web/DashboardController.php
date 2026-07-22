@@ -21,9 +21,9 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
-        // A super admin has no tenant of their own — send them to the platform admin
-        // console instead of an empty tenant dashboard.
-        if ($user->is_super_admin) {
+        // Platform admins (Global or Org Admin) have no tenant of their own — send them to
+        // the platform admin console instead of an empty tenant dashboard.
+        if ($user->isPlatformAdmin()) {
             return redirect()->route('admin.tenants.index');
         }
 

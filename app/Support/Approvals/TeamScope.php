@@ -26,6 +26,8 @@ class TeamScope
         return match ($this->strategy($actor)) {
             'unscoped' => true,
             'department' => $this->departmentEmployeeIds($actor)->contains($employeeId),
+            'branch' => $this->branchEmployeeIds($actor)->contains($employeeId),
+            'area' => $this->areaEmployeeIds($actor)->contains($employeeId),
             default => $actor->employee?->directReportEmployments()
                 ->where('employee_id', $employeeId)
                 ->exists() ?? false,
@@ -34,13 +36,16 @@ class TeamScope
 
     /**
      * Constrain a query (by its employee-id column) to $actor's scope: unscoped (tenant-wide),
-     * their own department (Department Manager), or their direct reports (Team Lead, default).
+     * their own department (Department Manager), their own branch (Branch Manager), every
+     * branch in their own area (Area Manager), or their direct reports (Team Lead, default).
      */
     public function scopeToTeam(Builder $query, User $actor, string $employeeIdColumn = 'employee_id'): Builder
     {
         return match ($this->strategy($actor)) {
             'unscoped' => $query,
             'department' => $query->whereIn($employeeIdColumn, $this->departmentEmployeeIds($actor)),
+            'branch' => $query->whereIn($employeeIdColumn, $this->branchEmployeeIds($actor)),
+            'area' => $query->whereIn($employeeIdColumn, $this->areaEmployeeIds($actor)),
             default => $query->whereIn(
                 $employeeIdColumn,
                 $actor->employee?->directReportEmployments()->pluck('employee_id') ?? collect(),
@@ -58,6 +63,14 @@ class TeamScope
             return 'department';
         }
 
+        if ($actor->hasRole('Branch Manager')) {
+            return 'branch';
+        }
+
+        if ($actor->hasRole('Area Manager')) {
+            return 'area';
+        }
+
         return 'direct-reports';
     }
 
@@ -72,6 +85,34 @@ class TeamScope
         return Employee::whereHas(
             'currentEmployment',
             fn ($query) => $query->where('department_id', $departmentId),
+        )->pluck('id');
+    }
+
+    protected function branchEmployeeIds(User $actor): Collection
+    {
+        $branchId = $actor->employee?->currentEmployment?->branch_id;
+
+        if ($branchId === null) {
+            return collect();
+        }
+
+        return Employee::whereHas(
+            'currentEmployment',
+            fn ($query) => $query->where('branch_id', $branchId),
+        )->pluck('id');
+    }
+
+    protected function areaEmployeeIds(User $actor): Collection
+    {
+        $areaId = $actor->employee?->currentEmployment?->branch?->area_id;
+
+        if ($areaId === null) {
+            return collect();
+        }
+
+        return Employee::whereHas(
+            'currentEmployment.branch',
+            fn ($query) => $query->where('area_id', $areaId),
         )->pluck('id');
     }
 }

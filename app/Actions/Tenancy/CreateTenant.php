@@ -17,10 +17,11 @@ class CreateTenant
     public function __construct(
         protected ProvisionDefaultRoles $provisionDefaultRoles,
         protected CreateUser $createUser,
+        protected SeedDefaultStatutoryConfig $seedDefaultStatutoryConfig,
     ) {}
 
     /**
-     * @param  array{name: string, timezone: string, currency: string, admin_name: string, admin_email: string, admin_password: string}  $data
+     * @param  array{name: string, timezone: string, currency: string, structure?: string, admin_name: string, admin_email: string, admin_password: string}  $data
      */
     public function handle(array $data): Tenant
     {
@@ -30,9 +31,11 @@ class CreateTenant
                 'slug' => $this->uniqueSlug($data['name']),
                 'timezone' => $data['timezone'],
                 'currency' => $data['currency'],
+                'structure' => $data['structure'] ?? 'simple',
             ]);
 
             $this->provisionDefaultRoles->handle($tenant);
+            $this->seedDefaultStatutoryConfig->handle($tenant);
 
             $this->createUser->handle($tenant, [
                 'name' => $data['admin_name'],

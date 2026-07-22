@@ -1,4 +1,4 @@
-@php($user ??= null)
+@php $user ??= null; @endphp
 
 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
     <div>
@@ -31,10 +31,18 @@
         <x-input-error :messages="$errors->get('employee_id')" class="mt-1" />
     </div>
 
+    @php
+        $roles = ['HR Admin', 'HR Manager', 'HR Specialist', 'Department Manager'];
+        if (auth()->user()->tenant?->isSegmented()) {
+            $roles[] = 'Branch Manager';
+            $roles[] = 'Area Manager';
+        }
+        $roles = [...$roles, 'Team Lead', 'Auditor', 'Accountant', 'Employee', 'Executive'];
+    @endphp
     <div>
         <x-label for="role" value="Role" />
         <x-select id="role" name="role" class="mt-1">
-            @foreach (['HR Admin', 'HR Manager', 'HR Specialist', 'Department Manager', 'Team Lead', 'Auditor', 'Accountant', 'Employee', 'Executive'] as $role)
+            @foreach ($roles as $role)
                 <option value="{{ $role }}" @selected(old('role', $user?->getRoleNames()->first()) === $role)>{{ $role }}</option>
             @endforeach
         </x-select>

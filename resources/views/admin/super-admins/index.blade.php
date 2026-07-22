@@ -9,6 +9,7 @@
                 <tr>
                     <th class="px-4 py-3 text-left font-medium text-slate-500">Name</th>
                     <th class="px-4 py-3 text-left font-medium text-slate-500">Email</th>
+                    <th class="px-4 py-3 text-left font-medium text-slate-500">Access</th>
                     <th class="px-4 py-3 text-left font-medium text-slate-500">Added</th>
                 </tr>
             </thead>
@@ -17,11 +18,18 @@
                     <tr>
                         <td class="px-4 py-3 font-medium text-slate-900">{{ $superAdmin->name }}</td>
                         <td class="px-4 py-3 text-slate-500">{{ $superAdmin->email }}</td>
+                        <td class="px-4 py-3">
+                            @if ($superAdmin->is_super_admin)
+                                <x-badge color="info">Global</x-badge>
+                            @else
+                                <x-badge color="neutral">Org Admin &middot; {{ $superAdmin->assignedTenants->pluck('name')->join(', ') ?: 'no companies' }}</x-badge>
+                            @endif
+                        </td>
                         <td class="px-4 py-3 text-slate-500">{{ $superAdmin->created_at->toFormattedDateString() }}</td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="3" class="px-4 py-6 text-center text-slate-500">No platform admins yet.</td>
+                        <td colspan="4" class="px-4 py-6 text-center text-slate-500">No platform admins yet.</td>
                     </tr>
                 @endforelse
             </tbody>

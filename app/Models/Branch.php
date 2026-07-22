@@ -18,6 +18,7 @@ class Branch extends Model
     protected $fillable = [
         'tenant_id',
         'entity_id',
+        'area_id',
         'name',
         'code',
         'address',
@@ -31,5 +32,10 @@ class Branch extends Model
     public function entity(): BelongsTo
     {
         return $this->belongsTo(Entity::class);
+    }
+
+    public function area(): BelongsTo
+    {
+        return $this->belongsTo(Area::class);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Actions\Tenancy\SeedDefaultStatutoryConfig;
 use App\Models\Tenant;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -26,6 +27,17 @@ class TenantFactory extends Factory
             'status' => 'active',
             'timezone' => 'Africa/Kampala',
             'currency' => 'UGX',
+            'structure' => 'simple',
         ];
+    }
+
+    public function configure(): static
+    {
+        // Every tenant needs its own statutory config to run payroll — App\Actions\Tenancy\
+        // CreateTenant does this in production; factory-created tenants (tests, tinker) need
+        // the same so StatutoryEngine has something to load.
+        return $this->afterCreating(function (Tenant $tenant): void {
+            app(SeedDefaultStatutoryConfig::class)->handle($tenant);
+        });
     }
 }

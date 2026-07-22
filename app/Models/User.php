@@ -5,6 +5,7 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -24,6 +25,7 @@ class User extends Authenticatable
         'password',
         'status',
         'is_super_admin',
+        'is_org_admin',
         'signature_path',
     ];
 
@@ -44,6 +46,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_super_admin' => 'boolean',
+            'is_org_admin' => 'boolean',
         ];
     }
 
@@ -55,5 +58,28 @@ class User extends Authenticatable
     public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class);
+    }
+
+    /**
+     * The tenants an Org Admin (is_org_admin) is scoped to. Meaningless for a Global
+     * super admin (is_super_admin), who bypasses this entirely via Gate::before.
+     */
+    public function assignedTenants(): BelongsToMany
+    {
+        return $this->belongsToMany(Tenant::class, 'platform_admin_tenants');
+    }
+
+    public function isPlatformAdmin(): bool
+    {
+        return $this->is_super_admin || $this->is_org_admin;
+    }
+
+    public function canAccessTenant(Tenant $tenant): bool
+    {
+        if ($this->is_super_admin) {
+            return true;
+        }
+
+        return $this->is_org_admin && $this->assignedTenants()->where('tenants.id', $tenant->id)->exists();
     }
 }

@@ -6,6 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $title ?? config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @if (! $activeTheme->is_default)
+        <style>
+            :root {
+                --theme-50: {{ $activeTheme->color_50 }};
+                --theme-100: {{ $activeTheme->color_100 }};
+                --theme-500: {{ $activeTheme->color_500 }};
+                --theme-600: {{ $activeTheme->color_600 }};
+                --theme-700: {{ $activeTheme->color_700 }};
+                --theme-800: {{ $activeTheme->color_800 }};
+                --theme-font: {{ $activeTheme->font_stack }};
+            }
+        </style>
+    @endif
 </head>
 <body class="h-full bg-slate-50 antialiased" x-data="{ sidebarOpen: false }">
 @if (session('impersonator_id'))
@@ -152,10 +165,15 @@
             </x-nav-dropdown>
 
             @can('org.view')
-                <x-nav-dropdown label="Organization" icon="bx-buildings" :active="request()->routeIs(['entities.*', 'branches.*', 'departments.*', 'positions.*', 'grades.*', 'leave-types.*', 'shifts.*'])">
+                <x-nav-dropdown label="Organization" icon="bx-buildings" :active="request()->routeIs(['entities.*', 'areas.*', 'branches.*', 'departments.*', 'positions.*', 'grades.*', 'leave-types.*', 'shifts.*', 'organization.*'])">
                     <x-nav-link :href="route('entities.index')" :active="request()->routeIs('entities.*')" icon="bx-buildings">
                         Entities
                     </x-nav-link>
+                    @if (auth()->user()->tenant?->isSegmented())
+                        <x-nav-link :href="route('areas.index')" :active="request()->routeIs('areas.*')" icon="bx-map-alt">
+                            Areas
+                        </x-nav-link>
+                    @endif
                     <x-nav-link :href="route('branches.index')" :active="request()->routeIs('branches.*')" icon="bx-git-branch">
                         Branches
                     </x-nav-link>
@@ -174,6 +192,11 @@
                     <x-nav-link :href="route('shifts.index')" :active="request()->routeIs('shifts.*')" icon="bx-alarm">
                         Shifts
                     </x-nav-link>
+                    @can('org.manage')
+                        <x-nav-link :href="route('organization.edit')" :active="request()->routeIs('organization.*')" icon="bx-cog">
+                            Settings
+                        </x-nav-link>
+                    @endcan
                 </x-nav-dropdown>
             @endcan
 

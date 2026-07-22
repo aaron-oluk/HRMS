@@ -40,12 +40,14 @@
             <x-nav-link :href="route('admin.tenants.index')" :active="request()->routeIs('admin.tenants.*')" icon="bx-buildings">
                 Companies
             </x-nav-link>
-            <x-nav-link :href="route('admin.super-admins.index')" :active="request()->routeIs('admin.super-admins.*')" icon="bx-user-circle">
-                Platform Admins
-            </x-nav-link>
-            <x-nav-link :href="route('admin.statutory.edit')" :active="request()->routeIs('admin.statutory.*')" icon="bx-calculator">
-                Statutory Config
-            </x-nav-link>
+            @if (auth()->user()->is_super_admin)
+                <x-nav-link :href="route('admin.super-admins.index')" :active="request()->routeIs('admin.super-admins.*')" icon="bx-user-circle">
+                    Platform Admins
+                </x-nav-link>
+                <x-nav-link :href="route('admin.themes.index')" :active="request()->routeIs('admin.themes.*')" icon="bx-palette">
+                    Themes
+                </x-nav-link>
+            @endif
         </nav>
 
         <div class="border-t border-slate-100 p-3">

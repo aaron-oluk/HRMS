@@ -22,6 +22,10 @@ class BranchRequest extends FormRequest
                 'required',
                 Rule::exists('entities', 'id')->where('tenant_id', $this->user()->tenant_id),
             ],
+            'area_id' => [
+                'nullable',
+                Rule::exists('areas', 'id')->where('tenant_id', $this->user()->tenant_id),
+            ],
             'name' => ['required', 'string', 'max:255'],
             'code' => ['nullable', 'string', 'max:50'],
             'address' => ['nullable', 'string', 'max:1000'],

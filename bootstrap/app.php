@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Middleware\AssignRequestId;
+use App\Http\Middleware\EnsureAdminCanAccessTenant;
 use App\Http\Middleware\EnsureTenantHasModule;
+use App\Http\Middleware\EnsureUserIsPlatformAdmin;
 use App\Http\Middleware\EnsureUserIsSuperAdmin;
 use App\Http\Middleware\IdentifyTenant;
 use App\Http\Middleware\RoleMiddleware;
@@ -46,6 +48,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
             'super-admin' => EnsureUserIsSuperAdmin::class,
+            'platform-admin' => EnsureUserIsPlatformAdmin::class,
+            'admin-tenant-access' => EnsureAdminCanAccessTenant::class,
             'tenant-module' => EnsureTenantHasModule::class,
         ]);
     })

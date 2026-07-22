@@ -24,9 +24,19 @@ class TenantController extends Controller
 {
     public function __construct(protected PermissionRegistrar $permissionRegistrar) {}
 
-    public function index(): View
+    public function index(Request $request): View
     {
-        $tenants = Tenant::withCount('users', 'employees')->latest()->paginate(15);
+        // A scoped Org Admin only ever sees the tenants assigned to them; a Global admin
+        // sees every tenant (unchanged from before Org Admins existed).
+        $actor = $request->user();
+
+        $tenants = Tenant::withCount('users', 'employees')
+            ->when(
+                ! $actor->is_super_admin,
+                fn ($query) => $query->whereIn('id', $actor->assignedTenants()->pluck('tenants.id'))
+            )
+            ->latest()
+            ->paginate(15);
 
         return view('admin.tenants.index', ['tenants' => $tenants]);
     }
