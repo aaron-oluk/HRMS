@@ -25,6 +25,8 @@ class PermissionSeeder extends Seeder
         'employees.manage-compensation',
         'employees.view-notes',
         'employees.manage-notes',
+        'employees.view-warnings',
+        'employees.manage-warnings',
         'employments.manage',
         'users.manage',
         'leave.manage-types',

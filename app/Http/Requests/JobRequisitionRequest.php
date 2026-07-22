@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\JobRequisition;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -21,6 +22,7 @@ class JobRequisitionRequest extends FormRequest
             'department_id' => ['required', 'integer', Rule::exists('departments', 'id')->where('tenant_id', $tenantId)],
             'position_id' => ['required', 'integer', Rule::exists('positions', 'id')->where('tenant_id', $tenantId)],
             'title' => ['required', 'string', 'max:255'],
+            'type' => ['required', 'string', Rule::in(JobRequisition::TYPES)],
             'headcount' => ['required', 'integer', 'min:1'],
             'description' => ['nullable', 'string'],
             'status' => ['required', 'string', Rule::in(['draft', 'open', 'on_hold', 'closed', 'filled'])],

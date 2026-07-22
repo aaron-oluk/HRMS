@@ -2,9 +2,12 @@
 
 namespace App\Actions\Payroll;
 
+use App\Models\EmployeeAdvance;
+use App\Models\EmployeeDeduction;
 use App\Models\Employment;
 use App\Models\Entity;
 use App\Models\PayrollRun;
+use App\Models\PayrollRunLine;
 use App\Models\User;
 use App\Support\Payroll\StatutoryEngine;
 use Illuminate\Support\Carbon;
@@ -38,26 +41,89 @@ class GeneratePayrollRun
                 ->where('status', 'active')
                 ->with('employee')
                 ->get()
-                ->each(function (Employment $employment) use ($run) {
+                ->each(function (Employment $employment) use ($run, $period) {
                     $basicSalary = (float) $employment->basic_salary;
+                    $paye = $this->statutoryEngine->payeFor($basicSalary);
+                    $nssfEmployee = $this->statutoryEngine->nssfEmployeeFor($basicSalary);
 
-                    $run->lines()->create([
+                    $line = $run->lines()->create([
                         'employee_id' => $employment->employee_id,
                         'employment_id' => $employment->id,
                         'basic_salary' => $basicSalary,
                         'gross_pay' => $basicSalary,
-                        'paye_amount' => $this->statutoryEngine->payeFor($basicSalary),
-                        'nssf_employee_amount' => $this->statutoryEngine->nssfEmployeeFor($basicSalary),
+                        'paye_amount' => $paye,
+                        'nssf_employee_amount' => $nssfEmployee,
                         'nssf_employer_amount' => $this->statutoryEngine->nssfEmployerFor($basicSalary),
                         'other_deductions' => 0,
-                        'net_pay' => $basicSalary
-                            - $this->statutoryEngine->payeFor($basicSalary)
-                            - $this->statutoryEngine->nssfEmployeeFor($basicSalary),
+                        'net_pay' => $basicSalary - $paye - $nssfEmployee,
                         'currency' => $employment->currency,
+                    ]);
+
+                    $otherDeductions = $this->applyAdvancesAndDeductions($line, $employment->employee_id, $period);
+
+                    $line->update([
+                        'other_deductions' => $otherDeductions,
+                        'net_pay' => $basicSalary - $paye - $nssfEmployee - $otherDeductions,
                     ]);
                 });
 
             return $run;
         });
+    }
+
+    /**
+     * Applies this employee's active advances and deductions to the given payroll run line,
+     * recording a PayrollRunLineDeduction per applied item so payslips can show why net pay
+     * was reduced, and returns the total to subtract from net pay.
+     */
+    private function applyAdvancesAndDeductions(PayrollRunLine $line, int $employeeId, Carbon $period): float
+    {
+        $total = 0.0;
+
+        EmployeeAdvance::where('employee_id', $employeeId)
+            ->where('status', 'active')
+            ->where('balance_remaining', '>', 0)
+            ->get()
+            ->each(function (EmployeeAdvance $advance) use ($line, &$total): void {
+                $amount = min((float) $advance->monthly_deduction, (float) $advance->balance_remaining);
+                $remaining = (float) $advance->balance_remaining - $amount;
+
+                $line->deductions()->create([
+                    'source_type' => EmployeeAdvance::class,
+                    'source_id' => $advance->id,
+                    'label' => 'Advance repayment'.($advance->reason ? " ({$advance->reason})" : ''),
+                    'amount' => $amount,
+                ]);
+
+                $advance->update([
+                    'balance_remaining' => $remaining,
+                    'status' => $remaining <= 0 ? 'settled' : 'active',
+                ]);
+
+                $total += $amount;
+            });
+
+        EmployeeDeduction::where('employee_id', $employeeId)
+            ->where('status', 'active')
+            ->where('effective_date', '<=', $period)
+            ->get()
+            ->each(function (EmployeeDeduction $deduction) use ($line, &$total): void {
+                $amount = (float) $deduction->amount;
+
+                $line->deductions()->create([
+                    'source_type' => EmployeeDeduction::class,
+                    'source_id' => $deduction->id,
+                    'label' => $deduction->label,
+                    'amount' => $amount,
+                ]);
+
+                if ($deduction->frequency === 'one_time') {
+                    $deduction->update(['status' => 'inactive']);
+                }
+
+                $total += $amount;
+            });
+
+        return $total;
     }
 }

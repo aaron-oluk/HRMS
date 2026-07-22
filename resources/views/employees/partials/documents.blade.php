@@ -44,7 +44,7 @@
                 <div>
                     <x-label for="doc_type" value="Type" />
                     <x-select id="doc_type" name="type" class="mt-1">
-                        @foreach (['contract', 'national_id', 'certificate', 'other'] as $type)
+                        @foreach (['contract', 'national_id', 'certificate', 'achievement', 'other'] as $type)
                             <option value="{{ $type }}">{{ ucfirst(str_replace('_', ' ', $type)) }}</option>
                         @endforeach
                     </x-select>

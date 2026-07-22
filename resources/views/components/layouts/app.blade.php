@@ -91,6 +91,12 @@
                 @endif
             </x-nav-link>
 
+            @if (auth()->user()->employee)
+                <x-nav-link :href="route('warnings.mine')" :active="request()->routeIs('warnings.mine')" icon="bx-shield-quarter">
+                    My Warnings
+                </x-nav-link>
+            @endif
+
             @if ($enabledModules['payroll'] && (auth()->user()->canAny(['payroll.view', 'payroll.view-team-summary', 'payroll.run']) || auth()->user()->employee))
                 <x-nav-dropdown label="Payroll" icon="bx-receipt" :active="request()->routeIs('payroll.*')">
                     @canany(['payroll.view', 'payroll.view-team-summary', 'payroll.run'])

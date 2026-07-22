@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Candidate;
 use App\Models\Department;
 use App\Models\Employment;
 use App\Models\Entity;
@@ -52,6 +53,7 @@ test('hr admin can create a requisition and add a candidate', function () {
         'department_id' => $department->id,
         'position_id' => $position->id,
         'title' => 'Backend Engineer',
+        'type' => 'career',
         'headcount' => 2,
         'status' => 'open',
     ])->assertRedirect();
@@ -124,10 +126,54 @@ test('a candidate can be moved through the pipeline', function () {
     ]);
 
     $this->actingAs($hrAdmin)->post(route('recruitment.requisitions.candidates.stage', [$requisition, $candidate]), [
-        'status' => 'interview',
+        'status' => 'interviews',
     ])->assertRedirect();
 
-    expect($candidate->fresh()->status)->toBe('interview');
+    expect($candidate->fresh()->status)->toBe('interviews');
+});
+
+test('a requisition can be created as an internship and defaults to career', function () {
+    [$tenant, $hrAdmin] = tenantWithRole('HR Admin');
+    $entity = Entity::factory()->create(['tenant_id' => $tenant->id]);
+    $department = Department::factory()->for($entity)->create(['tenant_id' => $tenant->id]);
+    $position = Position::factory()->for($entity)->create(['tenant_id' => $tenant->id]);
+
+    $this->actingAs($hrAdmin)->post(route('recruitment.requisitions.store'), [
+        'entity_id' => $entity->id,
+        'department_id' => $department->id,
+        'position_id' => $position->id,
+        'title' => 'Summer Intern',
+        'type' => 'internship',
+        'headcount' => 1,
+        'status' => 'open',
+    ])->assertRedirect();
+
+    $requisition = JobRequisition::where('title', 'Summer Intern')->firstOrFail();
+    expect($requisition->type)->toBe('internship');
+
+    $defaultRequisition = makeRequisition($tenant, $entity, $department);
+    expect($defaultRequisition->type)->toBe('career');
+});
+
+test('a candidate can progress through every pipeline stage including rejection', function () {
+    [$tenant, $hrAdmin] = tenantWithRole('HR Admin');
+    $entity = Entity::factory()->create(['tenant_id' => $tenant->id]);
+    $department = Department::factory()->for($entity)->create(['tenant_id' => $tenant->id]);
+    $requisition = makeRequisition($tenant, $entity, $department);
+    $candidate = $requisition->candidates()->create([
+        'tenant_id' => $tenant->id,
+        'first_name' => 'Carol',
+        'last_name' => 'Auma',
+        'email' => 'carol@example.com',
+    ]);
+
+    foreach (Candidate::STATUSES as $status) {
+        $this->actingAs($hrAdmin)->post(route('recruitment.requisitions.candidates.stage', [$requisition, $candidate]), [
+            'status' => $status,
+        ])->assertRedirect();
+
+        expect($candidate->fresh()->status)->toBe($status);
+    }
 });
 
 test('a requisition from another tenant is invisible via the global scope', function () {

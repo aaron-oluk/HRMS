@@ -26,7 +26,7 @@ class CandidateFactory extends Factory
             'email' => fake()->unique()->safeEmail(),
             'phone' => fake()->phoneNumber(),
             'source' => fake()->randomElement(['referral', 'job board', 'linkedin', 'walk-in']),
-            'status' => 'applied',
+            'status' => 'advertising',
         ];
     }
 }

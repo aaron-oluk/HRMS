@@ -20,7 +20,16 @@ class Candidate extends Model
      *
      * @var list<string>
      */
-    public const STATUSES = ['applied', 'screening', 'interview', 'offer', 'hired', 'rejected'];
+    public const STATUSES = [
+        'advertising',
+        'review',
+        'shortlisting',
+        'interviews',
+        'negotiations_and_offers',
+        'contracts_and_appointments',
+        'probation',
+        'rejected',
+    ];
 
     protected $fillable = [
         'tenant_id',
@@ -36,7 +45,7 @@ class Candidate extends Model
     ];
 
     protected $attributes = [
-        'status' => 'applied',
+        'status' => 'advertising',
     ];
 
     public function fullName(): string

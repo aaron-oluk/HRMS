@@ -10,6 +10,7 @@
     <div class="mb-6 flex items-center justify-between">
         <div class="flex items-center gap-x-3">
             <x-badge :color="$statusColor">{{ ucfirst(str_replace('_', ' ', $jobRequisition->status)) }}</x-badge>
+            <x-badge color="info">{{ ucfirst($jobRequisition->type) }}</x-badge>
             <span class="text-sm text-slate-500">{{ $jobRequisition->department->name }} &middot; {{ $jobRequisition->position->title }} &middot; {{ $jobRequisition->headcount }} opening(s)</span>
         </div>
 
@@ -73,14 +74,19 @@
                             </td>
                         @endcan
                         <td class="px-4 py-3 text-slate-500">{{ $candidate->source ?? '—' }}</td>
-                        <td class="px-4 py-3"><x-badge :color="$candidate->status === 'hired' ? 'success' : ($candidate->status === 'rejected' ? 'danger' : 'neutral')">{{ ucfirst($candidate->status) }}</x-badge></td>
+                        @php($stageColor = match ($candidate->status) {
+                            'contracts_and_appointments', 'probation' => 'success',
+                            'rejected' => 'danger',
+                            default => 'neutral',
+                        })
+                        <td class="px-4 py-3"><x-badge :color="$stageColor">{{ ucfirst(str_replace('_', ' ', $candidate->status)) }}</x-badge></td>
                         <td class="px-4 py-3 text-right">
                             @can('recruitment.manage')
                                 <form method="POST" action="{{ route('recruitment.requisitions.candidates.stage', [$jobRequisition, $candidate]) }}" class="flex items-center justify-end gap-x-2">
                                     @csrf
                                     <x-select name="status" onchange="this.form.submit()" class="!py-1 !text-xs">
                                         @foreach (\App\Models\Candidate::STATUSES as $status)
-                                            <option value="{{ $status }}" @selected($candidate->status === $status)>{{ ucfirst($status) }}</option>
+                                            <option value="{{ $status }}" @selected($candidate->status === $status)>{{ ucfirst(str_replace('_', ' ', $status)) }}</option>
                                         @endforeach
                                     </x-select>
                                 </form>

@@ -9,6 +9,7 @@ use Database\Factories\PayrollRunLineFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PayrollRunLine extends Model
 {
@@ -61,5 +62,10 @@ class PayrollRunLine extends Model
     public function employment(): BelongsTo
     {
         return $this->belongsTo(Employment::class);
+    }
+
+    public function deductions(): HasMany
+    {
+        return $this->hasMany(PayrollRunLineDeduction::class);
     }
 }

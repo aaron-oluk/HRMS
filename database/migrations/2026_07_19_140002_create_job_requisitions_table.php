@@ -15,6 +15,7 @@ return new class extends Migration
             $table->foreignId('department_id')->constrained()->cascadeOnDelete();
             $table->foreignId('position_id')->constrained()->cascadeOnDelete();
             $table->string('title');
+            $table->string('type')->default('career');
             $table->unsignedInteger('headcount')->default(1);
             $table->string('status')->default('draft')->index();
             $table->foreignId('requested_by')->nullable()->constrained('users')->nullOnDelete();

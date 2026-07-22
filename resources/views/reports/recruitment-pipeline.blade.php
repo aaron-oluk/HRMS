@@ -9,7 +9,7 @@
             <dl class="space-y-2 text-sm">
                 @foreach (\App\Models\Candidate::STATUSES as $status)
                     <div class="flex justify-between">
-                        <dt class="text-slate-500">{{ ucfirst($status) }}</dt>
+                        <dt class="text-slate-500">{{ ucfirst(str_replace('_', ' ', $status)) }}</dt>
                         <dd class="font-medium text-slate-900">{{ $byStage[$status] ?? 0 }}</dd>
                     </div>
                 @endforeach

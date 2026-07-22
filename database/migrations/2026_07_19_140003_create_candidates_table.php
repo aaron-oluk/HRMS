@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('phone')->nullable();
             $table->string('resume_path')->nullable();
             $table->string('source')->nullable();
-            $table->string('status')->default('applied')->index();
+            $table->string('status')->default('advertising')->index();
             $table->text('notes')->nullable();
             $table->timestamps();
             $table->userstamps();

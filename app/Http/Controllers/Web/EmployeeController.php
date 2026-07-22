@@ -95,6 +95,11 @@ class EmployeeController extends Controller
             'mobileMoneyAccounts',
             'compensationItems',
             'notes',
+            'warnings.issuer',
+            'workExperiences',
+            'insurances',
+            'advances',
+            'deductions',
         ]);
 
         $viewer = auth()->user();

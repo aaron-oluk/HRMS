@@ -34,7 +34,7 @@ class PayrollRunController extends Controller
         $summary = null;
 
         if ($lineDetail) {
-            $lines = $payrollRun->lines()->with('employee')->get();
+            $lines = $payrollRun->lines()->with('employee', 'deductions')->get();
         } else {
             $lineQuery = $teamScope->scopeToTeam(PayrollRunLine::where('payroll_run_id', $payrollRun->id), $user);
             $summary = [
@@ -62,7 +62,7 @@ class PayrollRunController extends Controller
         $employee = $request->user()->employee;
 
         $payslips = $employee
-            ? $employee->payrollRunLines()->with('payrollRun')->get()->sortByDesc(fn ($line) => $line->payrollRun->period_month)->values()
+            ? $employee->payrollRunLines()->with('payrollRun', 'deductions')->get()->sortByDesc(fn ($line) => $line->payrollRun->period_month)->values()
             : collect();
 
         return view('payroll.my-payslips', ['payslips' => $payslips]);

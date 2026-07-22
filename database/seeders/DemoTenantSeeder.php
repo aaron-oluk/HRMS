@@ -21,6 +21,11 @@ use App\Models\Branch;
 use App\Models\ClockEvent;
 use App\Models\Department;
 use App\Models\Employee;
+use App\Models\EmployeeAdvance;
+use App\Models\EmployeeDeduction;
+use App\Models\EmployeeInsurance;
+use App\Models\EmployeeWarning;
+use App\Models\EmployeeWorkExperience;
 use App\Models\Employment;
 use App\Models\Entity;
 use App\Models\Grade;
@@ -418,6 +423,53 @@ class DemoTenantSeeder extends Seeder
             ]
         );
 
+        EmployeeWarning::firstOrCreate(
+            ['tenant_id' => $tenant->id, 'employee_id' => $reportEmployee->id, 'reason' => 'Arrived 45 minutes late to a scheduled shift without prior notice.'],
+            ['severity' => 'verbal', 'issued_by' => $manager->id, 'issued_at' => now()->subMonths(2)->toDateString(), 'status' => 'active']
+        );
+
+        EmployeeWorkExperience::firstOrCreate(
+            ['tenant_id' => $tenant->id, 'employee_id' => $reportEmployee->id, 'company_name' => 'Kampala Tech Solutions'],
+            [
+                'job_title' => 'Junior Developer',
+                'start_date' => now()->subYears(4)->toDateString(),
+                'end_date' => now()->subYears(2)->toDateString(),
+                'description' => 'Built and maintained internal tooling.',
+            ]
+        );
+
+        EmployeeInsurance::firstOrCreate(
+            ['tenant_id' => $tenant->id, 'employee_id' => $reportEmployee->id, 'provider' => 'Jubilee Health Insurance'],
+            [
+                'policy_number' => 'JHI-2024-00123',
+                'type' => 'medical',
+                'coverage_amount' => 5_000_000,
+                'start_date' => now()->subYear()->toDateString(),
+                'status' => 'active',
+            ]
+        );
+
+        EmployeeAdvance::firstOrCreate(
+            ['tenant_id' => $tenant->id, 'employee_id' => $reportEmployee->id, 'reason' => 'Emergency medical expense'],
+            [
+                'amount' => 600_000,
+                'monthly_deduction' => 150_000,
+                'balance_remaining' => 600_000,
+                'issued_date' => now()->subMonth()->toDateString(),
+                'status' => 'active',
+            ]
+        );
+
+        EmployeeDeduction::firstOrCreate(
+            ['tenant_id' => $tenant->id, 'employee_id' => $reportEmployee->id, 'label' => 'Staff welfare association'],
+            [
+                'amount' => 20_000,
+                'frequency' => 'recurring',
+                'status' => 'active',
+                'effective_date' => now()->subMonth()->toDateString(),
+            ]
+        );
+
         $shift = Shift::firstOrCreate(
             ['tenant_id' => $tenant->id, 'entity_id' => $entity->id, 'name' => 'Day Shift'],
             ['start_time' => '08:00', 'end_time' => '17:00', 'break_minutes' => 60]
@@ -468,9 +520,9 @@ class DemoTenantSeeder extends Seeder
         );
 
         foreach ([
-            ['first_name' => 'Aisha', 'last_name' => 'Nantongo', 'email' => 'aisha.nantongo@example.com', 'source' => 'referral', 'status' => 'interview'],
-            ['first_name' => 'Brian', 'last_name' => 'Kato', 'email' => 'brian.kato@example.com', 'source' => 'job board', 'status' => 'applied'],
-            ['first_name' => 'Carol', 'last_name' => 'Auma', 'email' => 'carol.auma@example.com', 'source' => 'linkedin', 'status' => 'hired'],
+            ['first_name' => 'Aisha', 'last_name' => 'Nantongo', 'email' => 'aisha.nantongo@example.com', 'source' => 'referral', 'status' => 'interviews'],
+            ['first_name' => 'Brian', 'last_name' => 'Kato', 'email' => 'brian.kato@example.com', 'source' => 'job board', 'status' => 'advertising'],
+            ['first_name' => 'Carol', 'last_name' => 'Auma', 'email' => 'carol.auma@example.com', 'source' => 'linkedin', 'status' => 'contracts_and_appointments'],
         ] as $candidate) {
             $requisition->candidates()->firstOrCreate(
                 ['tenant_id' => $tenant->id, 'email' => $candidate['email']],

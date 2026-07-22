@@ -24,6 +24,11 @@
                     @if ($currentEmployment)
                         <x-badge color="neutral">{{ ucfirst(str_replace('_', ' ', $currentEmployment->employment_type)) }}</x-badge>
                     @endif
+                    @if ($employee->totalExperienceLabel())
+                        <span class="flex items-center gap-x-1 text-xs text-slate-500">
+                            <i class="bx bx-briefcase-alt text-sm"></i> {{ $employee->totalExperienceLabel() }} experience
+                        </span>
+                    @endif
                 </p>
             </div>
         </div>
@@ -45,8 +50,13 @@
                     <i class="bx bx-file text-base"></i> Documents
                 </button>
                 <button type="button" @click="tab = 'pay'" :class="tab === 'pay' ? 'border-emerald-600 text-emerald-600' : 'border-transparent text-slate-500 hover:text-slate-700'" class="flex items-center gap-x-1.5 border-b-2 px-1 py-3 text-sm font-medium">
-                    <i class="bx bx-wallet text-base"></i> Bank &amp; mobile money
+                    <i class="bx bx-wallet text-base"></i> Pay &amp; deductions
                 </button>
+                @can('employees.view-warnings')
+                    <button type="button" @click="tab = 'conduct'" :class="tab === 'conduct' ? 'border-emerald-600 text-emerald-600' : 'border-transparent text-slate-500 hover:text-slate-700'" class="flex items-center gap-x-1.5 border-b-2 px-1 py-3 text-sm font-medium">
+                        <i class="bx bx-shield-quarter text-base"></i> Conduct
+                    </button>
+                @endcan
             </nav>
         </div>
 
@@ -65,5 +75,11 @@
         <div class="mt-6" x-show="tab === 'pay'" x-cloak>
             @include('employees.partials.pay-accounts')
         </div>
+
+        @can('employees.view-warnings')
+            <div class="mt-6" x-show="tab === 'conduct'" x-cloak>
+                @include('employees.partials.conduct')
+            </div>
+        @endcan
     </div>
 </x-layouts.app>

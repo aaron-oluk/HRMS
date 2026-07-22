@@ -38,6 +38,16 @@
     </div>
 
     <div>
+        <x-label for="type" value="Type" />
+        <x-select id="type" name="type" class="mt-1">
+            @foreach (\App\Models\JobRequisition::TYPES as $type)
+                <option value="{{ $type }}" @selected(old('type', $jobRequisition?->type ?? 'career') === $type)>{{ ucfirst($type) }}</option>
+            @endforeach
+        </x-select>
+        <x-input-error :messages="$errors->get('type')" class="mt-1" />
+    </div>
+
+    <div>
         <x-label for="headcount" value="Headcount" />
         <x-input id="headcount" type="number" min="1" name="headcount" :value="old('headcount', $jobRequisition?->headcount ?? 1)" required class="mt-1" />
         <x-input-error :messages="$errors->get('headcount')" class="mt-1" />

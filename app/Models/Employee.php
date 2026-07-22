@@ -149,6 +149,31 @@ class Employee extends Model
         return $this->hasMany(EmployeeNote::class)->latest();
     }
 
+    public function warnings(): HasMany
+    {
+        return $this->hasMany(EmployeeWarning::class)->latest('issued_at');
+    }
+
+    public function workExperiences(): HasMany
+    {
+        return $this->hasMany(EmployeeWorkExperience::class)->latest('start_date');
+    }
+
+    public function insurances(): HasMany
+    {
+        return $this->hasMany(EmployeeInsurance::class);
+    }
+
+    public function advances(): HasMany
+    {
+        return $this->hasMany(EmployeeAdvance::class)->latest('issued_date');
+    }
+
+    public function deductions(): HasMany
+    {
+        return $this->hasMany(EmployeeDeduction::class)->latest('effective_date');
+    }
+
     /**
      * Current employment rows of employees who report to this employee.
      */
@@ -157,5 +182,46 @@ class Employee extends Model
         return $this->hasMany(Employment::class, 'reporting_to_employee_id')
             ->whereNull('effective_to')
             ->where('status', 'active');
+    }
+
+    /**
+     * Total months of experience: this company's employment history (summed per segment,
+     * rather than first-to-last, so a gap from leaving and being rehired isn't counted)
+     * plus any prior work experience entries (see EmployeeWorkExperience).
+     */
+    public function totalExperienceMonths(): int
+    {
+        $months = 0;
+
+        foreach ($this->employments as $employment) {
+            $months += $employment->effective_from->diffInMonths($employment->effective_to ?? now());
+        }
+
+        foreach ($this->workExperiences as $experience) {
+            $months += $experience->start_date->diffInMonths($experience->end_date ?? now());
+        }
+
+        return $months;
+    }
+
+    /**
+     * "X yr Y mo" — null when there's nothing to show yet.
+     */
+    public function totalExperienceLabel(): ?string
+    {
+        $months = $this->totalExperienceMonths();
+
+        if ($months < 1) {
+            return null;
+        }
+
+        $years = intdiv($months, 12);
+        $remainingMonths = $months % 12;
+
+        if ($years === 0) {
+            return "{$remainingMonths} mo";
+        }
+
+        return $remainingMonths > 0 ? "{$years} yr {$remainingMonths} mo" : "{$years} yr";
     }
 }

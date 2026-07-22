@@ -208,5 +208,6 @@
         @endcan
 
         @include('employees.partials.profile')
+        @include('employees.partials.insurance')
     </div>
 </div>

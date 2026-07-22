@@ -17,7 +17,7 @@ class EmployeeDocumentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'type' => ['required', 'in:contract,national_id,certificate,other'],
+            'type' => ['required', 'in:contract,national_id,certificate,achievement,other'],
             'file' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
         ];
     }

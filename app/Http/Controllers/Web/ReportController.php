@@ -118,7 +118,7 @@ class ReportController extends Controller
         $byRequisitionStatus = JobRequisition::selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status');
 
         if ($request->query('format') === 'csv') {
-            $rows = collect(Candidate::STATUSES)->map(fn ($status) => [ucfirst($status), $byStage[$status] ?? 0]);
+            $rows = collect(Candidate::STATUSES)->map(fn ($status) => [ucfirst(str_replace('_', ' ', $status)), $byStage[$status] ?? 0]);
 
             return $this->toCsv('recruitment-pipeline', ['Stage', 'Candidates'], $rows);
         }

@@ -16,12 +16,18 @@ class JobRequisition extends Model
     /** @use HasFactory<JobRequisitionFactory> */
     use Auditable, BelongsToTenant, HasFactory, Userstamped;
 
+    /**
+     * @var list<string>
+     */
+    public const TYPES = ['career', 'internship'];
+
     protected $fillable = [
         'tenant_id',
         'entity_id',
         'department_id',
         'position_id',
         'title',
+        'type',
         'headcount',
         'status',
         'requested_by',
@@ -31,6 +37,7 @@ class JobRequisition extends Model
     ];
 
     protected $attributes = [
+        'type' => 'career',
         'status' => 'draft',
         'headcount' => 1,
     ];

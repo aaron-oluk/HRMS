@@ -10,12 +10,17 @@ use App\Http\Controllers\Web\BranchController;
 use App\Http\Controllers\Web\CandidateController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\DepartmentController;
+use App\Http\Controllers\Web\EmployeeAdvanceController;
 use App\Http\Controllers\Web\EmployeeBankAccountController;
 use App\Http\Controllers\Web\EmployeeCompensationController;
 use App\Http\Controllers\Web\EmployeeController;
+use App\Http\Controllers\Web\EmployeeDeductionController;
 use App\Http\Controllers\Web\EmployeeDocumentController;
+use App\Http\Controllers\Web\EmployeeInsuranceController;
 use App\Http\Controllers\Web\EmployeeMobileMoneyController;
 use App\Http\Controllers\Web\EmployeeNoteController;
+use App\Http\Controllers\Web\EmployeeWarningController;
+use App\Http\Controllers\Web\EmployeeWorkExperienceController;
 use App\Http\Controllers\Web\EmploymentController;
 use App\Http\Controllers\Web\EntityController;
 use App\Http\Controllers\Web\GradeController;
@@ -366,6 +371,11 @@ Route::middleware('auth')->group(function (): void {
                 ->name('employees.employments.create');
             Route::post('employees/{employee}/employments', [EmploymentController::class, 'store'])
                 ->name('employees.employments.store');
+
+            Route::post('employees/{employee}/work-experiences', [EmployeeWorkExperienceController::class, 'store'])
+                ->name('employees.work-experiences.store');
+            Route::delete('employees/{employee}/work-experiences/{workExperience}', [EmployeeWorkExperienceController::class, 'destroy'])
+                ->name('employees.work-experiences.destroy');
         });
 
         Route::middleware('role:HR Admin|HR Manager|HR Specialist|Department Manager')->group(function (): void {
@@ -399,6 +409,40 @@ Route::middleware('auth')->group(function (): void {
                 ->name('employees.notes.store');
             Route::delete('employees/{employee}/notes/{note}', [EmployeeNoteController::class, 'destroy'])
                 ->name('employees.notes.destroy');
+
+            Route::post('employees/{employee}/warnings', [EmployeeWarningController::class, 'store'])
+                ->name('employees.warnings.store');
+            Route::delete('employees/{employee}/warnings/{warning}', [EmployeeWarningController::class, 'destroy'])
+                ->name('employees.warnings.destroy');
+
+            Route::post('employees/{employee}/insurances', [EmployeeInsuranceController::class, 'store'])
+                ->name('employees.insurances.store');
+            Route::delete('employees/{employee}/insurances/{insurance}', [EmployeeInsuranceController::class, 'destroy'])
+                ->name('employees.insurances.destroy');
         });
+
+        // Advances and deductions are a payroll operation, not a general HR profile edit —
+        // gated by payroll.run (HR Admin, HR Manager, Accountant), same as generating a run.
+        Route::middleware('role:HR Admin|HR Manager|Accountant')->group(function (): void {
+            Route::post('employees/{employee}/advances', [EmployeeAdvanceController::class, 'store'])
+                ->name('employees.advances.store');
+            Route::delete('employees/{employee}/advances/{advance}', [EmployeeAdvanceController::class, 'destroy'])
+                ->name('employees.advances.destroy');
+
+            Route::post('employees/{employee}/deductions', [EmployeeDeductionController::class, 'store'])
+                ->name('employees.deductions.store');
+            Route::delete('employees/{employee}/deductions/{deduction}', [EmployeeDeductionController::class, 'destroy'])
+                ->name('employees.deductions.destroy');
+        });
+
+        // Acknowledging your own warning is open to any authenticated user — ownership is
+        // enforced inside EmployeeWarningController::acknowledge(), not by role middleware.
+        Route::post('employees/{employee}/warnings/{warning}/acknowledge', [EmployeeWarningController::class, 'acknowledge'])
+            ->name('employees.warnings.acknowledge');
     });
+
+    // Any authenticated employee may view and acknowledge their own warnings — the Conduct
+    // tab on employees.show is HR-only, so this is the only path an "Employee" role user
+    // (who cannot view employees.show at all) has to see or acknowledge their own record.
+    Route::get('my-warnings', [EmployeeWarningController::class, 'mine'])->name('warnings.mine');
 });

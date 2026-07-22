@@ -7,6 +7,7 @@
                     <th class="px-4 py-3 text-right font-medium text-slate-500">Gross pay</th>
                     <th class="px-4 py-3 text-right font-medium text-slate-500">PAYE</th>
                     <th class="px-4 py-3 text-right font-medium text-slate-500">NSSF</th>
+                    <th class="px-4 py-3 text-right font-medium text-slate-500">Other deductions</th>
                     <th class="px-4 py-3 text-right font-medium text-slate-500">Net pay</th>
                 </tr>
             </thead>
@@ -17,11 +18,17 @@
                         <td class="px-4 py-3 text-right text-slate-500">{{ number_format($line->gross_pay) }}</td>
                         <td class="px-4 py-3 text-right text-slate-500">{{ number_format($line->paye_amount) }}</td>
                         <td class="px-4 py-3 text-right text-slate-500">{{ number_format($line->nssf_employee_amount) }}</td>
+                        <td class="px-4 py-3 text-right text-slate-500">
+                            {{ number_format($line->other_deductions) }}
+                            @if ($line->deductions->isNotEmpty())
+                                <span class="block text-xs text-slate-400">{{ $line->deductions->pluck('label')->join(', ') }}</span>
+                            @endif
+                        </td>
                         <td class="px-4 py-3 text-right font-medium text-slate-900">{{ number_format($line->net_pay) }} {{ $line->currency }}</td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="px-4 py-6 text-center text-slate-500">No payslips yet.</td>
+                        <td colspan="6" class="px-4 py-6 text-center text-slate-500">No payslips yet.</td>
                     </tr>
                 @endforelse
             </tbody>
