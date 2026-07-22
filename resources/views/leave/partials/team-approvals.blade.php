@@ -13,7 +13,9 @@
         <tbody class="divide-y divide-slate-100">
             @forelse ($teamRequests as $request)
                 <tr>
-                    <td class="px-4 py-3 font-medium text-slate-900">{{ $request->employee->fullName() }}</td>
+                    <td class="px-4 py-3 font-medium text-slate-900">
+                        <a href="{{ route('employees.show', $request->employee) }}" class="hover:text-emerald-600">{{ $request->employee->fullName() }}</a>
+                    </td>
                     <td class="px-4 py-3 text-slate-500">{{ $request->leaveType->name }}</td>
                     <td class="px-4 py-3 text-slate-500">
                         {{ $request->start_date->toFormattedDateString() }}

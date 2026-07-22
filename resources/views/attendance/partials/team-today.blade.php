@@ -10,7 +10,7 @@
         </thead>
         <tbody class="divide-y divide-slate-100">
             @forelse ($teamToday as $day)
-                <tr>
+                <tr class="cursor-pointer hover:bg-slate-50" onclick="window.location='{{ route('employees.show', $day->employee) }}'">
                     <td class="px-4 py-3 font-medium text-slate-900">{{ $day->employee->fullName() }}</td>
                     <td class="px-4 py-3">
                         @php

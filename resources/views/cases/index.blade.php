@@ -26,7 +26,9 @@
                     })
                     <tr>
                         @if ($canManage)
-                            <td class="px-4 py-3 font-medium text-slate-900">{{ $case->employee->fullName() }}</td>
+                            <td class="px-4 py-3 font-medium text-slate-900">
+                                <a href="{{ route('employees.show', $case->employee) }}" class="hover:text-emerald-600">{{ $case->employee->fullName() }}</a>
+                            </td>
                         @endif
                         <td class="px-4 py-3 {{ $canManage ? 'text-slate-500' : 'font-medium text-slate-900' }}">{{ $case->subject }}</td>
                         <td class="px-4 py-3 text-slate-500">{{ ucfirst($case->category) }}</td>

@@ -54,7 +54,7 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     @forelse ($lines as $line)
-                        <tr>
+                        <tr class="cursor-pointer hover:bg-slate-50" onclick="window.location='{{ route('employees.show', $line->employee) }}'">
                             <td class="px-4 py-3 font-medium text-slate-900">{{ $line->employee->fullName() }}</td>
                             <td class="px-4 py-3 text-right text-slate-500">{{ number_format($line->basic_salary) }}</td>
                             <td class="px-4 py-3 text-right text-slate-500">{{ number_format($line->paye_amount) }}</td>

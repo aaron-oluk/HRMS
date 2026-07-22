@@ -135,7 +135,7 @@
                     <p class="mb-4 text-sm font-semibold text-slate-900">Upcoming time off</p>
                     <div class="flex flex-col divide-y divide-slate-100">
                         @foreach ($upcomingLeave as $request)
-                            <div class="flex items-center justify-between py-2.5">
+                            <a href="{{ route('employees.show', $request->employee) }}" class="flex items-center justify-between rounded-md py-2.5 hover:bg-slate-50">
                                 <div class="flex items-center gap-x-3">
                                     <x-avatar :name="$request->employee->fullName()" size="sm" />
                                     <p class="text-sm text-slate-700">{{ $request->employee->fullName() }} · {{ $request->leaveType->name }}</p>
@@ -146,7 +146,7 @@
                                         &ndash; {{ $request->end_date->toFormattedDateString() }}
                                     @endif
                                 </p>
-                            </div>
+                            </a>
                         @endforeach
                     </div>
                 </x-card>
