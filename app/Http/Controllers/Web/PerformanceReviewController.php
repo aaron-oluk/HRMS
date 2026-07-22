@@ -30,12 +30,23 @@ class PerformanceReviewController extends Controller
             ? PerformanceFeedbackRequest::where('reviewer_employee_id', $employee->id)->with('review.employee', 'review.cycle')->latest()->get()
             : collect();
 
+        // Peer feedback ABOUT this employee (as opposed to $feedbackRequests above, which is
+        // feedback this employee was asked to GIVE about someone else).
+        $receivedFeedback = $employee
+            ? PerformanceFeedbackRequest::whereHas('review', fn ($query) => $query->where('employee_id', $employee->id))
+                ->whereNotNull('rating')
+                ->with('reviewer.currentEmployment.position', 'review.cycle')
+                ->latest('submitted_at')
+                ->get()
+            : collect();
+
         $oneOnOnes = $employee ? $employee->oneOnOnes()->latest('scheduled_at')->get() : collect();
 
         return view('performance.my', [
             'performanceReviews' => $reviews,
             'goals' => $goals,
             'feedbackRequests' => $feedbackRequests,
+            'receivedFeedback' => $receivedFeedback,
             'oneOnOnes' => $oneOnOnes,
         ]);
     }
