@@ -9,6 +9,7 @@ use Database\Factories\CandidateFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Candidate extends Model
 {
@@ -31,6 +32,22 @@ class Candidate extends Model
         'rejected',
     ];
 
+    /**
+     * The real sequential pipeline, excluding 'rejected' — an escape hatch reachable from any
+     * stage, not the next step after 'probation'. Drives nextStatus() below.
+     *
+     * @var list<string>
+     */
+    public const PIPELINE_SEQUENCE = [
+        'advertising',
+        'review',
+        'shortlisting',
+        'interviews',
+        'negotiations_and_offers',
+        'contracts_and_appointments',
+        'probation',
+    ];
+
     protected $fillable = [
         'tenant_id',
         'job_requisition_id',
@@ -41,6 +58,7 @@ class Candidate extends Model
         'resume_path',
         'source',
         'status',
+        'rating',
         'notes',
     ];
 
@@ -56,5 +74,25 @@ class Candidate extends Model
     public function jobRequisition(): BelongsTo
     {
         return $this->belongsTo(JobRequisition::class);
+    }
+
+    public function comments(): HasMany
+    {
+        return $this->hasMany(CandidateComment::class)->latest();
+    }
+
+    /**
+     * The next stage in the real sequential pipeline, or null when there isn't one — already
+     * rejected (not part of the sequence) or already at the final 'probation' stage.
+     */
+    public function nextStatus(): ?string
+    {
+        $index = array_search($this->status, self::PIPELINE_SEQUENCE, true);
+
+        if ($index === false || $index === count(self::PIPELINE_SEQUENCE) - 1) {
+            return null;
+        }
+
+        return self::PIPELINE_SEQUENCE[$index + 1];
     }
 }

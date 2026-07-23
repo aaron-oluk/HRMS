@@ -114,7 +114,7 @@
 
             @if ($enabledModules['recruitment'])
                 @canany(['recruitment.view', 'recruitment.manage'])
-                    <x-nav-link :href="route('recruitment.requisitions.index')" :active="request()->routeIs('recruitment.requisitions.*')" icon="bx-briefcase-alt-2">
+                    <x-nav-link :href="route('recruitment.pipeline')" :active="request()->routeIs('recruitment.*')" icon="bx-briefcase-alt-2">
                         Recruitment
                     </x-nav-link>
                 @endcanany

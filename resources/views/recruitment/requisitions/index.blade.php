@@ -1,4 +1,6 @@
 <x-layouts.app title="Recruitment" header="Recruitment">
+    @include('recruitment.partials.header', ['activeTab' => 'job-postings'])
+
     <div class="mb-4 flex justify-end">
         @can('recruitment.manage')
             <a href="{{ route('recruitment.requisitions.create') }}"><x-button icon="bx-plus">New requisition</x-button></a>

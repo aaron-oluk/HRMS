@@ -7,6 +7,7 @@ use App\Http\Controllers\Web\AreaController;
 use App\Http\Controllers\Web\AttendanceController;
 use App\Http\Controllers\Web\AuditLogController;
 use App\Http\Controllers\Web\BranchController;
+use App\Http\Controllers\Web\CandidateCommentController;
 use App\Http\Controllers\Web\CandidateController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\DepartmentController;
@@ -40,6 +41,7 @@ use App\Http\Controllers\Web\PerformanceReviewController;
 use App\Http\Controllers\Web\PerformanceReviewCycleController;
 use App\Http\Controllers\Web\PositionController;
 use App\Http\Controllers\Web\ProfileController;
+use App\Http\Controllers\Web\RecruitmentPipelineController;
 use App\Http\Controllers\Web\ReportController;
 use App\Http\Controllers\Web\ReportFavoriteController;
 use App\Http\Controllers\Web\ShiftController;
@@ -230,6 +232,9 @@ Route::middleware('auth')->group(function (): void {
                 ->only(['index', 'show'])
                 ->parameters(['requisitions' => 'jobRequisition'])
                 ->names('recruitment.requisitions');
+
+            Route::get('recruitment/pipeline', [RecruitmentPipelineController::class, 'index'])->name('recruitment.pipeline');
+            Route::get('recruitment/candidates/{candidate}', [CandidateController::class, 'show'])->name('recruitment.candidates.show');
         });
 
         Route::middleware('role:HR Admin|HR Manager|HR Specialist')->group(function (): void {
@@ -239,6 +244,11 @@ Route::middleware('auth')->group(function (): void {
                 Route::post('recruitment/requisitions/{jobRequisition}/candidates/{candidate}/stage', [CandidateController::class, 'updateStage'])
                     ->name('recruitment.requisitions.candidates.stage');
             });
+
+            Route::post('recruitment/candidates', [CandidateController::class, 'storeFromPipeline'])->name('recruitment.candidates.store');
+            Route::post('recruitment/candidates/{candidate}/rate', [CandidateController::class, 'rate'])->name('recruitment.candidates.rate');
+            Route::post('recruitment/candidates/{candidate}/comments', [CandidateCommentController::class, 'store'])->name('recruitment.candidates.comments.store');
+            Route::delete('recruitment/candidates/{candidate}/comments/{comment}', [CandidateCommentController::class, 'destroy'])->name('recruitment.candidates.comments.destroy');
         });
     });
 

@@ -64,7 +64,9 @@
             <tbody class="divide-y divide-slate-100">
                 @forelse ($candidates as $candidate)
                     <tr>
-                        <td class="px-4 py-3 font-medium text-slate-900">{{ $candidate->fullName() }}</td>
+                        <td class="px-4 py-3 font-medium text-slate-900">
+                            <a href="{{ route('recruitment.candidates.show', $candidate) }}" class="hover:text-emerald-600">{{ $candidate->fullName() }}</a>
+                        </td>
                         @can('recruitment.view-candidate-pii')
                             <td class="px-4 py-3 text-slate-500">
                                 {{ $candidate->email }}
