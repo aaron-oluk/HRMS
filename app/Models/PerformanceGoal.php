@@ -27,6 +27,7 @@ class PerformanceGoal extends Model
         'current_value',
         'unit',
         'status',
+        'start_date',
         'due_date',
     ];
 
@@ -39,6 +40,7 @@ class PerformanceGoal extends Model
         return [
             'target_value' => 'decimal:2',
             'current_value' => 'decimal:2',
+            'start_date' => 'date',
             'due_date' => 'date',
         ];
     }

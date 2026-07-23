@@ -22,7 +22,8 @@ class PerformanceGoalRequest extends FormRequest
             'current_value' => ['nullable', 'numeric'],
             'unit' => ['nullable', 'string', 'max:32'],
             'status' => ['required', 'string', Rule::in(PerformanceGoal::STATUSES)],
-            'due_date' => ['nullable', 'date'],
+            'start_date' => ['nullable', 'date'],
+            'due_date' => ['nullable', 'date', 'after_or_equal:start_date'],
         ];
     }
 }

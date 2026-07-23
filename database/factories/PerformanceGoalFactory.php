@@ -22,10 +22,12 @@ class PerformanceGoalFactory extends Factory
             'employee_id' => Employee::factory(),
             'tenant_id' => fn (array $attributes) => Employee::find($attributes['employee_id'])->tenant_id,
             'title' => fake()->sentence(3),
+            'description' => fake()->sentence(10),
             'target_value' => 100,
             'current_value' => fake()->numberBetween(0, 100),
             'unit' => '%',
             'status' => 'on_track',
+            'start_date' => now()->subMonth()->toDateString(),
             'due_date' => now()->addMonths(3)->toDateString(),
         ];
     }

@@ -6,6 +6,15 @@
         ->values()
         ->all();
 
+    $latestCompletedReview = $performanceReviews
+        ->whereNotNull('manager_rating')
+        ->sortBy(fn ($review) => $review->cycle->start_date)
+        ->last();
+
+    $ratingToPercent = fn (?int $rating) => $rating !== null ? ($rating / 5) * 100 : null;
+    $selfRatingPct = $latestCompletedReview ? $ratingToPercent($latestCompletedReview->self_rating) : null;
+    $managerRatingPct = $latestCompletedReview ? $ratingToPercent($latestCompletedReview->manager_rating) : null;
+
     $latestScore = $trend !== [] ? end($trend)['score'] : null;
     $previousScore = count($trend) > 1 ? $trend[count($trend) - 2]['score'] : null;
     $scoreDelta = $latestScore !== null && $previousScore !== null ? round($latestScore - $previousScore, 1) : null;
@@ -49,7 +58,7 @@
     <div
         x-data="{
             tab: '{{ $defaultTab }}',
-            showGoalModal: {{ $errors->hasAny(['title', 'target_value', 'unit', 'due_date']) ? 'true' : 'false' }},
+            showGoalModal: {{ $errors->hasAny(['title', 'description', 'target_value', 'unit', 'start_date', 'due_date']) ? 'true' : 'false' }},
         }"
     >
         {{-- Stat cards --}}
@@ -88,7 +97,7 @@
 
             <x-card class="flex items-center gap-x-4">
                 <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-amber-50">
-                    <i class="bx bxs-star text-2xl text-amber-500"></i>
+                    <i class="bx bx-star text-2xl text-amber-500"></i>
                 </div>
                 <div>
                     <p class="text-sm text-slate-500">Peer feedback</p>
@@ -135,6 +144,28 @@
                                     @endif
                                 @endif
                             </p>
+
+                            @if ($latestCompletedReview)
+                                <div class="mt-4">
+                                    <div class="mb-2.5 flex items-center justify-between text-xs">
+                                        <span class="font-semibold uppercase tracking-wide text-slate-400">Self &harr; manager calibration</span>
+                                        <span class="text-slate-400">{{ $latestCompletedReview->cycle->name }}</span>
+                                    </div>
+                                    <div class="relative h-1.5 rounded-full bg-slate-100">
+                                        <div
+                                            class="absolute h-1.5 rounded-full bg-slate-200"
+                                            style="left: {{ min($selfRatingPct, $managerRatingPct) }}%; width: {{ abs($selfRatingPct - $managerRatingPct) }}%"
+                                        ></div>
+                                        <span class="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-slate-400 shadow-sm" style="left: {{ $selfRatingPct }}%" title="Self: {{ $latestCompletedReview->self_rating }}/5"></span>
+                                        <span class="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-emerald-600 shadow-sm" style="left: {{ $managerRatingPct }}%" title="Manager: {{ $latestCompletedReview->manager_rating }}/5"></span>
+                                    </div>
+                                    <div class="mt-2 flex items-center justify-between text-xs text-slate-500">
+                                        <span class="flex items-center gap-x-1.5"><span class="h-2 w-2 rounded-full bg-slate-400"></span> Self {{ $latestCompletedReview->self_rating }}/5</span>
+                                        <span class="flex items-center gap-x-1.5"><span class="h-2 w-2 rounded-full bg-emerald-600"></span> Manager {{ $latestCompletedReview->manager_rating }}/5</span>
+                                    </div>
+                                </div>
+                            @endif
+
                             <div class="mt-5">
                                 <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Score trend</p>
                                 <x-trend-chart :data="$trend" :height="120" />
@@ -203,6 +234,12 @@
                                                     </div>
                                                     <span class="text-xs text-slate-500">{{ round($progress) }}%</span>
                                                 </div>
+                                            @elseif ($goal->description || $goal->due_date)
+                                                <p class="mt-1.5 truncate text-xs text-slate-500">
+                                                    @if ($goal->description){{ \Illuminate\Support\Str::limit($goal->description, 60) }}@endif
+                                                    @if ($goal->description && $goal->due_date) &middot; @endif
+                                                    @if ($goal->due_date)due {{ $goal->due_date->format('d M') }}@endif
+                                                </p>
                                             @endif
                                         </div>
                                     @empty
@@ -292,21 +329,12 @@
                                                 </div>
                                             </form>
                                         @else
-                                            <div class="mt-4 flex gap-x-8">
-                                                <div>
-                                                    <p class="text-2xl font-semibold text-slate-900">{{ $review->self_rating ?? '—' }}<span class="text-sm font-normal text-slate-400">{{ $review->self_rating ? '/5' : '' }}</span></p>
-                                                    <p class="text-xs text-slate-500">Self rating</p>
-                                                </div>
-                                                <div>
-                                                    <p class="text-2xl font-semibold text-slate-900">{{ $review->manager_rating ?? '—' }}<span class="text-sm font-normal text-slate-400">{{ $review->manager_rating ? '/5' : '' }}</span></p>
-                                                    <p class="text-xs text-slate-500">Manager rating</p>
-                                                </div>
-                                                @if ($review->manager_rating)
-                                                    <div>
-                                                        <p class="text-2xl font-semibold text-emerald-600">{{ round(((float) $review->manager_rating / 5) * 100) }}<span class="text-sm font-normal text-slate-400">%</span></p>
-                                                        <p class="text-xs text-slate-500">Score</p>
-                                                    </div>
-                                                @endif
+                                            @php
+                                                $reviewScore = $review->manager_rating ? round(((float) $review->manager_rating / 5) * 100) : null;
+                                            @endphp
+                                            <div class="mt-4 flex items-center gap-x-6">
+                                                <x-score-ring :score="$reviewScore" size="64" stroke="6" text-size="text-lg" />
+                                                <x-rating-bars :self="$review->self_rating" :manager="$review->manager_rating" class="flex-1" />
                                             </div>
                                         @endif
                                     </div>
@@ -332,14 +360,31 @@
                                                 {{ ucfirst(str_replace('_', ' ', $goal->status)) }}
                                             </x-badge>
                                         </div>
-                                        <p class="mt-1 text-xs text-slate-500">
-                                            @if ($goal->target_value !== null)
-                                                {{ $goal->current_value ?? 0 }} / {{ $goal->target_value }} {{ $goal->unit }}
-                                            @endif
-                                            @if ($goal->due_date)
-                                                &middot; due {{ $goal->due_date->format('d M Y') }}
-                                            @endif
-                                        </p>
+
+                                        @if ($goal->description)
+                                            <p class="mt-1.5 text-sm text-slate-600">{{ $goal->description }}</p>
+                                        @endif
+
+                                        @if ($goal->start_date || $goal->due_date || $goal->target_value !== null)
+                                            <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+                                                @if ($goal->start_date || $goal->due_date)
+                                                    <span class="flex items-center gap-x-1">
+                                                        <i class="bx bx-calendar text-sm"></i>
+                                                        @if ($goal->start_date && $goal->due_date)
+                                                            {{ $goal->start_date->format('d M Y') }} &ndash; {{ $goal->due_date->format('d M Y') }}
+                                                        @elseif ($goal->due_date)
+                                                            Due {{ $goal->due_date->format('d M Y') }}
+                                                        @else
+                                                            From {{ $goal->start_date->format('d M Y') }}
+                                                        @endif
+                                                    </span>
+                                                @endif
+                                                @if ($goal->target_value !== null)
+                                                    <span>{{ $goal->current_value ?? 0 }} / {{ $goal->target_value }} {{ $goal->unit }}</span>
+                                                @endif
+                                            </div>
+                                        @endif
+
                                         @if ($progress !== null)
                                             <div class="mt-3 flex items-center gap-x-3">
                                                 <div class="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100">
@@ -545,35 +590,62 @@
 
         {{-- Add goal modal --}}
         <div x-show="showGoalModal" x-cloak class="dialog-backdrop fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4" @keydown.escape.window="showGoalModal = false">
-            <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-xl" @click.outside="showGoalModal = false">
+            <div
+                class="w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
+                @click.outside="showGoalModal = false"
+                x-data="{ showTarget: {{ $errors->hasAny(['target_value', 'unit']) ? 'true' : 'false' }} }"
+            >
                 <h2 class="text-base font-semibold text-slate-900">Add a goal</h2>
-                <p class="mt-1 text-sm text-slate-500">Track progress toward something you want to achieve this cycle.</p>
+                <p class="mt-1 text-sm text-slate-500">Track something you want to achieve this cycle — a project, a habit, a milestone. Not every goal is a number.</p>
 
                 <form method="POST" action="{{ route('performance.goals.store') }}" class="mt-4 space-y-4">
                     @csrf
                     <div>
                         <x-label for="goal_title" value="Goal title" />
-                        <x-input id="goal_title" name="title" placeholder="e.g. Complete certification" required class="mt-1" />
+                        <x-input id="goal_title" name="title" placeholder="e.g. Improve public speaking confidence" required class="mt-1" />
                         <x-input-error :messages="$errors->get('title')" class="mt-1" />
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <x-label for="goal_target" value="Target" />
-                            <x-input id="goal_target" name="target_value" type="number" step="0.01" placeholder="100" class="mt-1" />
-                            <x-input-error :messages="$errors->get('target_value')" class="mt-1" />
-                        </div>
-                        <div>
-                            <x-label for="goal_unit" value="Unit" />
-                            <x-input id="goal_unit" name="unit" placeholder="%" class="mt-1" />
-                            <x-input-error :messages="$errors->get('unit')" class="mt-1" />
+                    <div>
+                        <x-label for="goal_description" value="Description" />
+                        <textarea id="goal_description" name="description" rows="3" placeholder="What does success look like?" class="mt-1 block w-full rounded-sm border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition hover:border-slate-400 focus:border-emerald-500 focus:outline-none">{{ old('description') }}</textarea>
+                        <x-input-error :messages="$errors->get('description')" class="mt-1" />
+                    </div>
+
+                    <div>
+                        <x-label value="Timeline" />
+                        <div class="mt-1 grid grid-cols-2 gap-4">
+                            <div>
+                                <x-input id="goal_start_date" name="start_date" type="date" aria-label="Start date" class="mt-1" />
+                                <p class="mt-1 text-xs text-slate-400">Start</p>
+                                <x-input-error :messages="$errors->get('start_date')" class="mt-1" />
+                            </div>
+                            <div>
+                                <x-input id="goal_due_date" name="due_date" type="date" aria-label="Due date" class="mt-1" />
+                                <p class="mt-1 text-xs text-slate-400">Due</p>
+                                <x-input-error :messages="$errors->get('due_date')" class="mt-1" />
+                            </div>
                         </div>
                     </div>
 
                     <div>
-                        <x-label for="goal_due_date" value="Due date" />
-                        <x-input id="goal_due_date" name="due_date" type="date" class="mt-1" />
-                        <x-input-error :messages="$errors->get('due_date')" class="mt-1" />
+                        <button type="button" @click="showTarget = ! showTarget" class="text-xs font-medium text-emerald-600 hover:text-emerald-500">
+                            <span x-show="! showTarget">+ Track a measurable target</span>
+                            <span x-show="showTarget" x-cloak>Remove measurable target</span>
+                        </button>
+
+                        <div x-show="showTarget" x-cloak class="mt-3 grid grid-cols-2 gap-4 rounded-md border border-slate-100 p-3">
+                            <div>
+                                <x-label for="goal_target" value="Target" />
+                                <x-input id="goal_target" name="target_value" type="number" step="0.01" placeholder="100" class="mt-1" />
+                                <x-input-error :messages="$errors->get('target_value')" class="mt-1" />
+                            </div>
+                            <div>
+                                <x-label for="goal_unit" value="Unit" />
+                                <x-input id="goal_unit" name="unit" placeholder="%" class="mt-1" />
+                                <x-input-error :messages="$errors->get('unit')" class="mt-1" />
+                            </div>
+                        </div>
                     </div>
 
                     <input type="hidden" name="status" value="on_track">

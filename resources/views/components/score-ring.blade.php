@@ -1,4 +1,4 @@
-@props(['score' => null, 'label' => '', 'size' => 152, 'stroke' => 14])
+@props(['score' => null, 'label' => '', 'size' => 152, 'stroke' => 14, 'textSize' => 'text-3xl'])
 
 @php
     $radius = ($size - $stroke) / 2;
@@ -18,7 +18,7 @@
         @endif
     </svg>
     <div class="absolute inset-0 flex flex-col items-center justify-center">
-        <span class="text-3xl font-bold text-slate-900">{{ $score !== null ? round($score) : '—' }}</span>
+        <span class="{{ $textSize }} font-bold text-slate-900">{{ $score !== null ? round($score) : '—' }}</span>
         @if ($label)
             <span class="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{{ $label }}</span>
         @endif
