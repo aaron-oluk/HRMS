@@ -41,6 +41,7 @@ use App\Http\Controllers\Web\PerformanceReviewCycleController;
 use App\Http\Controllers\Web\PositionController;
 use App\Http\Controllers\Web\ProfileController;
 use App\Http\Controllers\Web\ReportController;
+use App\Http\Controllers\Web\ReportFavoriteController;
 use App\Http\Controllers\Web\ShiftController;
 use App\Http\Controllers\Web\SignableDocumentController;
 use App\Http\Controllers\Web\SignatureController;
@@ -299,6 +300,9 @@ Route::middleware('auth')->group(function (): void {
         Route::get('attendance-summary', [ReportController::class, 'attendanceSummary'])->name('attendance-summary');
         Route::get('payroll-cost-summary', [ReportController::class, 'payrollCostSummary'])->name('payroll-cost-summary');
         Route::get('recruitment-pipeline', [ReportController::class, 'recruitmentPipeline'])->name('recruitment-pipeline');
+
+        Route::post('favorites', [ReportFavoriteController::class, 'store'])->name('favorites.store');
+        Route::delete('favorites/{reportKey}', [ReportFavoriteController::class, 'destroy'])->name('favorites.destroy');
     });
 
     // Any authenticated user may upload/view their own reusable signature image — kept outside
