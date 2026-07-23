@@ -229,7 +229,7 @@ Route::middleware('auth')->group(function (): void {
 
         Route::middleware('role:HR Admin|HR Manager|HR Specialist|Department Manager|Auditor|Executive')->group(function (): void {
             Route::resource('recruitment/requisitions', JobRequisitionController::class)
-                ->only(['index', 'show'])
+                ->only(['index'])
                 ->parameters(['requisitions' => 'jobRequisition'])
                 ->names('recruitment.requisitions');
 
@@ -239,8 +239,6 @@ Route::middleware('auth')->group(function (): void {
 
         Route::middleware('role:HR Admin|HR Manager|HR Specialist')->group(function (): void {
             Route::scopeBindings()->group(function (): void {
-                Route::post('recruitment/requisitions/{jobRequisition}/candidates', [CandidateController::class, 'store'])
-                    ->name('recruitment.requisitions.candidates.store');
                 Route::post('recruitment/requisitions/{jobRequisition}/candidates/{candidate}/stage', [CandidateController::class, 'updateStage'])
                     ->name('recruitment.requisitions.candidates.stage');
             });

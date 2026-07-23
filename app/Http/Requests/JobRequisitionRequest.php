@@ -28,4 +28,14 @@ class JobRequisitionRequest extends FormRequest
             'status' => ['required', 'string', Rule::in(['draft', 'open', 'on_hold', 'closed', 'filled'])],
         ];
     }
+
+    /**
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'headcount' => 'number of positions',
+        ];
+    }
 }

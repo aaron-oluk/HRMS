@@ -1,8 +1,8 @@
-<x-layouts.app title="New requisition" header="New requisition">
+<x-layouts.app title="New role to hire for" header="New role to hire for">
     <x-card class="max-w-3xl">
         <div class="mb-6 border-b border-slate-100 pb-5">
-            <h2 class="text-base font-semibold text-slate-900">New requisition</h2>
-            <p class="mt-1 text-sm text-slate-500">Open a headcount request for a department.</p>
+            <h2 class="text-base font-semibold text-slate-900">New role to hire for</h2>
+            <p class="mt-1 text-sm text-slate-500">Define the role, and how many people you need for it.</p>
         </div>
 
         <form method="POST" action="{{ route('recruitment.requisitions.store') }}">

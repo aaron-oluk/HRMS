@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Web;
 
 use App\Actions\Recruitment\MoveCandidateStage;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CandidateRequest;
 use App\Http\Requests\PipelineCandidateRequest;
 use App\Http\Requests\RateCandidateRequest;
 use App\Models\Candidate;
@@ -15,16 +14,9 @@ use Illuminate\Http\Request;
 
 class CandidateController extends Controller
 {
-    public function store(CandidateRequest $request, JobRequisition $jobRequisition): RedirectResponse
-    {
-        $jobRequisition->candidates()->create($request->validated());
-
-        return redirect()->route('recruitment.requisitions.show', $jobRequisition)->with('status', 'Candidate added.');
-    }
-
     /**
-     * Flat create used by the Pipeline board's "Add Candidate" modal, which isn't scoped to a
-     * single requisition page — the target job comes from the form body instead of the URL.
+     * The only way a candidate is created — the Pipeline board's "Add Candidate" modal isn't
+     * scoped to a single job page, so the target job comes from the form body instead of the URL.
      */
     public function storeFromPipeline(PipelineCandidateRequest $request): RedirectResponse
     {
@@ -36,9 +28,9 @@ class CandidateController extends Controller
 
     public function show(Request $request, Candidate $candidate): View
     {
-        $candidate->load(['jobRequisition', 'comments.author']);
+        $candidate->load(['jobRequisition', 'comments.author', 'creator']);
 
-        // Same department-scoping as JobRequisitionController::show.
+        // Same department-scoping as JobRequisitionController::index.
         if ($request->user()->hasRole('Department Manager')) {
             $departmentId = $request->user()->employee?->currentEmployment?->department_id;
             abort_unless($candidate->jobRequisition->department_id === $departmentId, 403);

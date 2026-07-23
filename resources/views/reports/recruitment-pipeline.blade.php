@@ -10,7 +10,7 @@
         </x-card>
 
         <x-card>
-            <h3 class="mb-4 text-sm font-semibold text-slate-900">Requisitions by status</h3>
+            <h3 class="mb-4 text-sm font-semibold text-slate-900">Roles by status</h3>
             <x-labeled-bars :data="collect(['draft', 'open', 'on_hold', 'closed', 'filled'])->map(fn ($status) => [
                 'label' => ucfirst(str_replace('_', ' ', $status)),
                 'value' => $byRequisitionStatus[$status] ?? 0,
@@ -31,7 +31,7 @@
                         @can('recruitment.view-candidate-pii')
                             <th class="px-4 py-3 text-left font-medium text-slate-500">Email</th>
                         @endcan
-                        <th class="px-4 py-3 text-left font-medium text-slate-500">Requisition</th>
+                        <th class="px-4 py-3 text-left font-medium text-slate-500">Role</th>
                         <th class="px-4 py-3 text-left font-medium text-slate-500">Source</th>
                         <th class="px-4 py-3 text-left font-medium text-slate-500">Applied</th>
                     </tr>

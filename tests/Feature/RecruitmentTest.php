@@ -60,7 +60,8 @@ test('hr admin can create a requisition and add a candidate', function () {
 
     $requisition = JobRequisition::where('title', 'Backend Engineer')->firstOrFail();
 
-    $this->actingAs($hrAdmin)->post(route('recruitment.requisitions.candidates.store', $requisition), [
+    $this->actingAs($hrAdmin)->post(route('recruitment.candidates.store'), [
+        'job_requisition_id' => $requisition->id,
         'first_name' => 'Aisha',
         'last_name' => 'Nantongo',
         'email' => 'aisha@example.com',
@@ -87,7 +88,11 @@ test('a department manager only sees requisitions for their own department', fun
     $response->assertSee($ownRequisition->title);
     $response->assertDontSee('Frontend Engineer');
 
-    $this->actingAs($deptManagerUser)->get(route('recruitment.requisitions.show', $otherRequisition))->assertForbidden();
+    $otherCandidate = $otherRequisition->candidates()->create([
+        'tenant_id' => $tenant->id, 'first_name' => 'Other', 'last_name' => 'Candidate', 'email' => 'other@example.com',
+    ]);
+
+    $this->actingAs($deptManagerUser)->get(route('recruitment.candidates.show', $otherCandidate))->assertForbidden();
 });
 
 test('only recruitment.view-candidate-pii holders see candidate contact details', function () {
@@ -95,7 +100,7 @@ test('only recruitment.view-candidate-pii holders see candidate contact details'
     $entity = Entity::factory()->create(['tenant_id' => $tenant->id]);
     $department = Department::factory()->for($entity)->create(['tenant_id' => $tenant->id]);
     $requisition = makeRequisition($tenant, $entity, $department);
-    $requisition->candidates()->create([
+    $candidate = $requisition->candidates()->create([
         'tenant_id' => $tenant->id,
         'first_name' => 'Aisha',
         'last_name' => 'Nantongo',
@@ -103,13 +108,13 @@ test('only recruitment.view-candidate-pii holders see candidate contact details'
     ]);
 
     // HR Admin holds recruitment.view-candidate-pii.
-    $this->actingAs($hrAdmin)->get(route('recruitment.requisitions.show', $requisition))
+    $this->actingAs($hrAdmin)->get(route('recruitment.candidates.show', $candidate))
         ->assertSee('aisha.private@example.com');
 
     // Department Manager holds recruitment.view but not the PII permission.
     [$deptManagerEmployee, $deptManagerUser] = departmentManagerIn($tenant, $entity, $department);
 
-    $this->actingAs($deptManagerUser)->get(route('recruitment.requisitions.show', $requisition))
+    $this->actingAs($deptManagerUser)->get(route('recruitment.candidates.show', $candidate))
         ->assertDontSee('aisha.private@example.com');
 });
 
@@ -184,5 +189,5 @@ test('a requisition from another tenant is invisible via the global scope', func
 
     [, $hrAdminB] = tenantWithRole('HR Admin');
 
-    $this->actingAs($hrAdminB)->get(route('recruitment.requisitions.show', $requisitionA))->assertNotFound();
+    $this->actingAs($hrAdminB)->get(route('recruitment.requisitions.edit', $requisitionA))->assertNotFound();
 });

@@ -19,7 +19,7 @@ class ReportCatalog
         ],
         'recruitment' => [
             'title' => 'Recruitment pipeline',
-            'description' => 'Candidates by stage, requisitions by status.',
+            'description' => 'Candidates by stage, roles by status.',
             'icon' => 'bx-briefcase-alt-2',
             'route' => 'reports.recruitment-pipeline',
             'category' => 'Recruitment',

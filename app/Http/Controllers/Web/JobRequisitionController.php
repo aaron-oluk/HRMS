@@ -29,19 +29,6 @@ class JobRequisitionController extends Controller
         return view('recruitment.requisitions.index', ['requisitions' => $query->paginate(15)]);
     }
 
-    public function show(Request $request, JobRequisition $jobRequisition): View
-    {
-        if ($request->user()->hasRole('Department Manager')) {
-            $departmentId = $request->user()->employee?->currentEmployment?->department_id;
-            abort_unless($jobRequisition->department_id === $departmentId, 403);
-        }
-
-        return view('recruitment.requisitions.show', [
-            'jobRequisition' => $jobRequisition,
-            'candidates' => $jobRequisition->candidates()->latest()->get(),
-        ]);
-    }
-
     public function create(): View
     {
         return view('recruitment.requisitions.create', [
@@ -58,7 +45,7 @@ class JobRequisitionController extends Controller
             'opened_at' => $request->validated('status') === 'open' ? now() : null,
         ]);
 
-        return redirect()->route('recruitment.requisitions.show', $requisition)->with('status', 'Requisition created.');
+        return redirect()->route('recruitment.pipeline', ['job_requisition_id' => $requisition->id])->with('status', 'Role created.');
     }
 
     public function edit(JobRequisition $jobRequisition): View
@@ -75,6 +62,6 @@ class JobRequisitionController extends Controller
     {
         $jobRequisition->update($request->validated());
 
-        return redirect()->route('recruitment.requisitions.show', $jobRequisition)->with('status', 'Requisition updated.');
+        return redirect()->route('recruitment.pipeline', ['job_requisition_id' => $jobRequisition->id])->with('status', 'Role updated.');
     }
 }

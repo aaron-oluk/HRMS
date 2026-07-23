@@ -3,7 +3,7 @@
 
     <div class="mb-4 flex justify-end">
         @can('recruitment.manage')
-            <a href="{{ route('recruitment.requisitions.create') }}"><x-button icon="bx-plus">New requisition</x-button></a>
+            <a href="{{ route('recruitment.requisitions.create') }}"><x-button icon="bx-plus">New role to hire for</x-button></a>
         @endcan
     </div>
 
@@ -14,7 +14,7 @@
                     <th class="px-4 py-3 text-left font-medium text-slate-500">Title</th>
                     <th class="px-4 py-3 text-left font-medium text-slate-500">Type</th>
                     <th class="px-4 py-3 text-left font-medium text-slate-500">Department</th>
-                    <th class="px-4 py-3 text-left font-medium text-slate-500">Headcount</th>
+                    <th class="px-4 py-3 text-left font-medium text-slate-500">Positions</th>
                     <th class="px-4 py-3 text-left font-medium text-slate-500">Status</th>
                     <th class="px-4 py-3"></th>
                 </tr>
@@ -35,12 +35,16 @@
                         <td class="px-4 py-3 text-slate-500">{{ $requisition->headcount }}</td>
                         <td class="px-4 py-3"><x-badge :color="$statusColor">{{ ucfirst(str_replace('_', ' ', $requisition->status)) }}</x-badge></td>
                         <td class="px-4 py-3 text-right">
-                            <a href="{{ route('recruitment.requisitions.show', $requisition) }}" class="text-emerald-600 hover:text-emerald-500">View</a>
+                            <a href="{{ route('recruitment.pipeline', ['job_requisition_id' => $requisition->id]) }}" class="text-emerald-600 hover:text-emerald-500">Candidates</a>
+                            @can('recruitment.manage')
+                                &middot;
+                                <a href="{{ route('recruitment.requisitions.edit', $requisition) }}" class="text-emerald-600 hover:text-emerald-500">Edit</a>
+                            @endcan
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="px-4 py-6 text-center text-slate-500">No requisitions yet.</td>
+                        <td colspan="6" class="px-4 py-6 text-center text-slate-500">No roles to hire for yet.</td>
                     </tr>
                 @endforelse
             </tbody>

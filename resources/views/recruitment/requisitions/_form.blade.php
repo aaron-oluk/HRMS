@@ -48,7 +48,7 @@
     </div>
 
     <div>
-        <x-label for="headcount" value="Headcount" />
+        <x-label for="headcount" value="Number of positions" />
         <x-input id="headcount" type="number" min="1" name="headcount" :value="old('headcount', $jobRequisition?->headcount ?? 1)" required class="mt-1" />
         <x-input-error :messages="$errors->get('headcount')" class="mt-1" />
     </div>

@@ -86,6 +86,15 @@ class Candidate extends Model
     }
 
     /**
+     * Null for a candidate who applied through the public job-application API — there's no
+     * authenticated user in that request for Userstamped to attribute created_by to.
+     */
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
      * The next stage in the real sequential pipeline, or null when there isn't one — already
      * rejected (not part of the sequence) or already at the final 'probation' stage.
      */
