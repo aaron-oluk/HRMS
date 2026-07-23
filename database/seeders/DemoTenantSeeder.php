@@ -523,6 +523,8 @@ class DemoTenantSeeder extends Seeder
             ['first_name' => 'Aisha', 'last_name' => 'Nantongo', 'email' => 'aisha.nantongo@example.com', 'source' => 'referral', 'status' => 'interviews'],
             ['first_name' => 'Brian', 'last_name' => 'Kato', 'email' => 'brian.kato@example.com', 'source' => 'job board', 'status' => 'advertising'],
             ['first_name' => 'Carol', 'last_name' => 'Auma', 'email' => 'carol.auma@example.com', 'source' => 'linkedin', 'status' => 'contracts_and_appointments'],
+            ['first_name' => 'Denis', 'last_name' => 'Wasswa', 'email' => 'denis.wasswa@example.com', 'source' => 'careers portal', 'status' => 'applied'],
+            ['first_name' => 'Esther', 'last_name' => 'Nabirye', 'email' => 'esther.nabirye@example.com', 'source' => 'referral', 'status' => 'hired'],
         ] as $candidate) {
             $requisition->candidates()->firstOrCreate(
                 ['tenant_id' => $tenant->id, 'email' => $candidate['email']],

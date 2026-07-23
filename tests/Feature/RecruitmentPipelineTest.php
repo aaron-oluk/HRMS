@@ -82,13 +82,13 @@ test('a candidate can be viewed, advanced, and rejected from the show page', fun
         ->assertSee('Ivan Mugisha')
         ->assertSee('ivan@example.com');
 
-    expect($candidate->nextStatus())->toBe('review');
+    expect($candidate->nextStatus())->toBe('applied');
 
     $this->actingAs($hrAdmin)->post(route('recruitment.requisitions.candidates.stage', [$requisition, $candidate]), [
         'status' => $candidate->nextStatus(),
     ])->assertRedirect();
 
-    expect($candidate->fresh()->status)->toBe('review');
+    expect($candidate->fresh()->status)->toBe('applied');
 
     $this->actingAs($hrAdmin)->post(route('recruitment.requisitions.candidates.stage', [$requisition, $candidate]), [
         'status' => 'rejected',
@@ -97,17 +97,19 @@ test('a candidate can be viewed, advanced, and rejected from the show page', fun
     expect($candidate->fresh()->status)->toBe('rejected');
 });
 
-test('nextStatus is null once rejected or once at the final probation stage', function () {
+test('nextStatus advances probation to hired, and is null once rejected or already hired', function () {
     [$tenant] = tenantWithRole('HR Admin');
     $entity = Entity::factory()->create(['tenant_id' => $tenant->id]);
     $department = Department::factory()->for($entity)->create(['tenant_id' => $tenant->id]);
     $requisition = makeRequisition($tenant, $entity, $department);
 
     $rejected = $requisition->candidates()->create(['tenant_id' => $tenant->id, 'first_name' => 'A', 'last_name' => 'B', 'email' => 'a@example.com', 'status' => 'rejected']);
-    $atFinalStage = $requisition->candidates()->create(['tenant_id' => $tenant->id, 'first_name' => 'C', 'last_name' => 'D', 'email' => 'c@example.com', 'status' => 'probation']);
+    $onProbation = $requisition->candidates()->create(['tenant_id' => $tenant->id, 'first_name' => 'C', 'last_name' => 'D', 'email' => 'c@example.com', 'status' => 'probation']);
+    $hired = $requisition->candidates()->create(['tenant_id' => $tenant->id, 'first_name' => 'E', 'last_name' => 'F', 'email' => 'e@example.com', 'status' => 'hired']);
 
     expect($rejected->nextStatus())->toBeNull();
-    expect($atFinalStage->nextStatus())->toBeNull();
+    expect($onProbation->nextStatus())->toBe('hired');
+    expect($hired->nextStatus())->toBeNull();
 });
 
 test('an hr admin can comment on a candidate and remove their own comment', function () {

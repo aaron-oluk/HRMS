@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\V1\OvertimeApprovalController;
 use App\Http\Controllers\Api\V1\OvertimeRequestController;
 use App\Http\Controllers\Api\V1\PayrollRunController;
 use App\Http\Controllers\Api\V1\PositionController;
+use App\Http\Controllers\Api\V1\Public\JobApplicationController;
 use App\Http\Controllers\Api\V1\ShiftController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Middleware\IdentifyTenant;
@@ -156,4 +157,15 @@ Route::middleware(['auth:sanctum', IdentifyTenant::class, SubstituteBindings::cl
                 ->only(['store', 'update', 'destroy']);
         });
     });
+});
+
+// Deliberately outside the auth:sanctum group above — this is the one unauthenticated surface
+// in the API, meant for an external careers page or job board integration to record an
+// applicant. SubstituteBindings must be re-added here too (it's removed from the global 'api'
+// group in bootstrap/app.php and normally re-added only inside the auth group above), or
+// {jobRequisition} would arrive as a raw string instead of a bound model. throttle:10,1 is the
+// only abuse control a fully public POST endpoint needs — no auth, no CSRF (stateless API).
+Route::middleware([SubstituteBindings::class, 'throttle:10,1'])->prefix('public')->name('public.')->group(function (): void {
+    Route::post('job-requisitions/{jobRequisition}/apply', [JobApplicationController::class, 'store'])
+        ->name('job-requisitions.apply');
 });

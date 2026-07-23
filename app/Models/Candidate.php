@@ -23,12 +23,14 @@ class Candidate extends Model
      */
     public const STATUSES = [
         'advertising',
+        'applied',
         'review',
         'shortlisting',
         'interviews',
         'negotiations_and_offers',
         'contracts_and_appointments',
         'probation',
+        'hired',
         'rejected',
     ];
 
@@ -40,12 +42,14 @@ class Candidate extends Model
      */
     public const PIPELINE_SEQUENCE = [
         'advertising',
+        'applied',
         'review',
         'shortlisting',
         'interviews',
         'negotiations_and_offers',
         'contracts_and_appointments',
         'probation',
+        'hired',
     ];
 
     protected $fillable = [
