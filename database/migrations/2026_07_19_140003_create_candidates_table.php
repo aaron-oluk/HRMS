@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('resume_path')->nullable();
             $table->string('source')->nullable();
             $table->string('status')->default('advertising')->index();
+            $table->unsignedTinyInteger('rating')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
             $table->userstamps();

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->foreignId('performance_review_cycle_id')->nullable()->constrained()->nullOnDelete();
             $table->string('title');
             $table->text('description')->nullable();
+            $table->date('start_date')->nullable();
             $table->decimal('target_value', 14, 2)->nullable();
             $table->decimal('current_value', 14, 2)->nullable();
             $table->string('unit')->nullable();
